@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { app } from '../firebaseConfig'; 
+import { getAuth, signInWithPopup, signInWithEmailAndPassword, GoogleAuthProvider,} from 'firebase/auth';
+import { app } from '../firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function LoginPage() {
@@ -13,11 +13,9 @@ export default function LoginPage() {
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  const validarEmail = (email) => {
-    return /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
-  };
+  const validarEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErro('');
 
@@ -31,7 +29,31 @@ export default function LoginPage() {
       return;
     }
 
-    console.log('Login realizado com:', { email, senha });
+    try {
+      const resultado = await signInWithEmailAndPassword(auth, email, senha);
+      const usuario = resultado.user;
+      console.log('Login com e-mail/senha:', usuario);
+
+      // Redireciona após login
+      navigate('/painel'); // ou a rota desejada
+    } catch (erro) {
+      console.error(erro);
+
+      // Erros comuns do Firebase Auth
+      switch (erro.code) {
+        case 'auth/user-not-found':
+          setErro('Usuário não encontrado.');
+          break;
+        case 'auth/wrong-password':
+          setErro('Senha incorreta.');
+          break;
+        case 'auth/invalid-email':
+          setErro('E-mail inválido.');
+          break;
+        default:
+          setErro('Erro ao autenticar. Tente novamente.');
+      }
+    }
   };
 
   const loginComGoogle = async () => {
@@ -39,7 +61,9 @@ export default function LoginPage() {
       const resultado = await signInWithPopup(auth, provider);
       const usuario = resultado.user;
       console.log('Login com Google:', usuario);
-      // redirecionar ou salvar login
+
+      // Redireciona após login
+      navigate('/painel');
     } catch (erro) {
       console.error(erro);
       setErro('Erro ao autenticar com o Google.');

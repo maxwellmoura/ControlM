@@ -1,5 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from '../firebaseConfig';
 
 export default function Cadastro() {
   const [nome, setNome] = useState('');
@@ -8,12 +13,15 @@ export default function Cadastro() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+  const navigate = useNavigate();
 
-  const validarEmail = (email) => {
-    return /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  const validarEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+
+  const voltar = () => {
+    navigate('/');
   };
 
-  const handleCadastro = (e) => {
+  const handleCadastro = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
@@ -38,14 +46,29 @@ export default function Cadastro() {
       return;
     }
 
-    // Aqui você pode fazer a chamada à API ou Firebase Auth
-    console.log('Cadastro realizado com:', { nome, email, senha });
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
 
-    setSucesso('Cadastro realizado com sucesso!');
-    setNome('');
-    setEmail('');
-    setSenha('');
-    setConfirmarSenha('');
+      
+      await setDoc(doc(db, "Usuarios", user.uid), {
+        nome: nome,
+        email: email,
+        criadoEm: new Date()
+      });
+
+      setSucesso('Cadastro realizado com sucesso!');
+      setNome('');
+      setEmail('');
+      setSenha('');
+      setConfirmarSenha('');
+
+      // Redireciona após 2 segundos
+      setTimeout(() => navigate('/'), 2000);
+    } catch (error) {
+      console.error(error);
+      setErro('Erro ao cadastrar: ' + error.message);
+    }
   };
 
   return (
@@ -111,9 +134,8 @@ export default function Cadastro() {
             </div>
           )}
 
-          <button type="submit" className="btn btn-success w-100">
-            Cadastrar
-          </button>
+          <button type="submit" className="btn btn-success w-100">Cadastrar</button>
+          <button onClick={voltar} className="btn btn-secondary mt-2 w-100" type="button">Voltar</button>
         </form>
       </div>
     </div>
