@@ -1,0 +1,44 @@
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAdminStatus } from '../../getAdminStatus';
+
+export default function PrivateRoute({ children }) {
+  const [carregando, setCarregando] = useState(true);
+  const [usuario, setUsuario] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const admin = await getAdminStatus();
+          setIsAdmin(admin);
+          setUsuario(user);
+        } catch (error) {
+          console.error('Erro ao verificar status de admin:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setUsuario(null);
+        setIsAdmin(false);
+      }
+
+      setCarregando(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (carregando) {
+    return <div className="text-center mt-5">Verificando acesso...</div>;
+  }
+
+  if (!usuario || !isAdmin) {
+    return <Navigate to="/painel" replace />;
+  }
+
+  return children;
+}

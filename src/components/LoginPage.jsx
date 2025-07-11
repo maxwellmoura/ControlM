@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithPopup, signInWithEmailAndPassword, GoogleAuthProvider,} from 'firebase/auth';
+import {
+  getAuth,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+} from 'firebase/auth';
 import { app } from '../firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -13,7 +18,8 @@ export default function LoginPage() {
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  const validarEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  const validarEmail = (email) =>
+    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,12 +40,13 @@ export default function LoginPage() {
       const usuario = resultado.user;
       console.log('Login com e-mail/senha:', usuario);
 
-      // Redireciona após login
-      navigate('/painel'); // ou a rota desejada
+      // ⚠️ Atualiza o token para garantir que as claims (como admin) sejam carregadas
+      await usuario.getIdToken(true);
+
+      navigate('/painel');
     } catch (erro) {
       console.error(erro);
 
-      // Erros comuns do Firebase Auth
       switch (erro.code) {
         case 'auth/user-not-found':
           setErro('Usuário não encontrado.');
@@ -62,7 +69,8 @@ export default function LoginPage() {
       const usuario = resultado.user;
       console.log('Login com Google:', usuario);
 
-      // Redireciona após login
+      await usuario.getIdToken(true);
+
       navigate('/painel');
     } catch (erro) {
       console.error(erro);

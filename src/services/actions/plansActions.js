@@ -1,4 +1,4 @@
-import { addPlansAcess, setPlansAcess } from "../dataAcess/plansAcess";
+import { addPlansAcess, setPlansAcess, updatePlansAcess } from "../dataAcess/plansAcess";
 
 export async function addDoc(body) {
   const response = await addPlansAcess(body);
@@ -9,3 +9,8 @@ export async function setDoc(body) {
   const response = await setPlansAcess(body);
   return response;
 }
+export async function updateDoc(body) {
+  const response = await updatePlansAcess(body);
+  return response;
+}
+
