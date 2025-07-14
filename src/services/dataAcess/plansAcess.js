@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import { db } from "../../config/firebaseConfig";
+=======
 import { db } from "../../firebaseConfig";
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 import {
   collection,
   addDoc,

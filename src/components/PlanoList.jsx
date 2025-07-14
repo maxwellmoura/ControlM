@@ -1,14 +1,36 @@
 import { useEffect, useState } from 'react';
+<<<<<<< HEAD
+import { getPlansAcess, addPlansAcess, updatePlansAcess, deletePlansAcess, } from '../services/dataAcess/plansAcess';
+import PlanoForm from './PlanoForm';
+import { useNavigate } from 'react-router-dom';
+=======
 import {  getPlansAcess,  addPlansAcess,  updatePlansAcess,  deletePlansAcess,} from '../services/dataAcess/plansAcess';
 import PlanoForm from './PlanoForm';
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 
 export default function PlanosList() {
   const [planos, setPlanos] = useState([]);
   const [editando, setEditando] = useState(null);
+<<<<<<< HEAD
+  const navigate = useNavigate();
+
+
+  const voltar = () => {
+    navigate('/');
+  };
+  const carregarPlanos = async () => {
+    try {
+      const dados = await getPlansAcess();
+      setPlanos(dados);
+    } catch (error) {
+      console.error("Erro ao carregar planos:", error);
+    }
+=======
 
   const carregarPlanos = async () => {
     const dados = await getPlansAcess();
     setPlanos(dados);
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
   };
 
   useEffect(() => {
@@ -81,6 +103,10 @@ export default function PlanosList() {
           )}
         </tbody>
       </table>
+<<<<<<< HEAD
+      <button onClick={voltar} className="btn btn-secondary mt-4" type="button">Voltar</button>
+=======
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
     </div>
   );
 }

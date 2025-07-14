@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+<<<<<<< HEAD
+import { getAdminStatus } from '../../config/getAdminStatus';
+=======
 import { getAdminStatus } from '../../getAdminStatus';
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 
 export default function PrivateRoute({ children }) {
   const [carregando, setCarregando] = useState(true);
@@ -14,6 +18,11 @@ export default function PrivateRoute({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
+<<<<<<< HEAD
+          await user.getIdToken(true);
+
+=======
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
           const admin = await getAdminStatus();
           setIsAdmin(admin);
           setUsuario(user);
@@ -36,8 +45,17 @@ export default function PrivateRoute({ children }) {
     return <div className="text-center mt-5">Verificando acesso...</div>;
   }
 
+<<<<<<< HEAD
+  if (!usuario) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!isAdmin) {
+    return <div className="text-center mt-5 text-danger fw-bold">Acesso negado: usuário não é admin.</div>;
+=======
   if (!usuario || !isAdmin) {
     return <Navigate to="/painel" replace />;
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
   }
 
   return children;
