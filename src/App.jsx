@@ -2,12 +2,21 @@
 import LoginPage from './components/LoginPage';
 import Cadastro from './components/Cadastro';
 import Painel from './components/Painel';
+<<<<<<< HEAD
+import LandingPage from './components/LandingPage';
+=======
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 
 // React Router
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Services e BD
 import PrivateRoute from './services/dataAcess/PrivateRoute';
+<<<<<<< HEAD
+
+
+function App() {
+=======
 import { addPlansAcess, updatePlansAcess } from './services/dataAcess/plansAcess';
 
 import { useEffect } from 'react';
@@ -26,11 +35,17 @@ function App() {
 
   //   executarTestes();
   // }, []);
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 
   return (
     <Router>
       <Routes>
+<<<<<<< HEAD
+        <Route path="/admin" element={<LoginPage />} />
+        <Route path="/inicio" element={<LandingPage />} />
+=======
         <Route path="/" element={<LoginPage />} />
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
         <Route path="/cadastro" element={<Cadastro />} />
         <Route
           path="/painel"

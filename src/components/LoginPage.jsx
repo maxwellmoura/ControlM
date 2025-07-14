@@ -6,7 +6,11 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
 } from 'firebase/auth';
+<<<<<<< HEAD
+import { app } from '../config/firebaseConfig';
+=======
 import { app } from '../firebaseConfig';
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function LoginPage() {
@@ -40,10 +44,23 @@ export default function LoginPage() {
       const usuario = resultado.user;
       console.log('Login com e-mail/senha:', usuario);
 
+<<<<<<< HEAD
+      await usuario.getIdToken(true);
+      const token = await usuario.getIdTokenResult(true);
+      console.log("Custom claims:", token.claims);
+
+      if (token.claims.admin) {
+        navigate('/painel');
+      } else {
+        navigate('/inicio'); 
+      }
+
+=======
       // ⚠️ Atualiza o token para garantir que as claims (como admin) sejam carregadas
       await usuario.getIdToken(true);
 
       navigate('/painel');
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
     } catch (erro) {
       console.error(erro);
 
@@ -73,6 +90,10 @@ export default function LoginPage() {
 
       navigate('/painel');
     } catch (erro) {
+<<<<<<< HEAD
+      navigate('/inicio');
+=======
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
       console.error(erro);
       setErro('Erro ao autenticar com o Google.');
     }
