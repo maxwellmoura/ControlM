@@ -40,10 +40,15 @@ export default function LoginPage() {
       const usuario = resultado.user;
       console.log('Login com e-mail/senha:', usuario);
 
-      // ⚠️ Atualiza o token para garantir que as claims (como admin) sejam carregadas
       await usuario.getIdToken(true);
+      const token = await usuario.getIdTokenResult(true);
+      console.log("Custom claims:", token.claims);
 
-      navigate('/painel');
+      if (token.claims.admin) {
+        navigate('/painel');
+      } else {
+        navigate('/inicio');
+      }
     } catch (erro) {
       console.error(erro);
 
@@ -68,11 +73,8 @@ export default function LoginPage() {
       const resultado = await signInWithPopup(auth, provider);
       const usuario = resultado.user;
       console.log('Login com Google:', usuario);
-
-      await usuario.getIdToken(true);
-
-      navigate('/painel');
     } catch (erro) {
+      navigate('/inicio');
       console.error(erro);
       setErro('Erro ao autenticar com o Google.');
     }
