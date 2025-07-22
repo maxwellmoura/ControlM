@@ -4,7 +4,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+<<<<<<< HEAD
+import { auth, db } from '../config/firebaseConfig';
+=======
 import { auth, db } from '../firebaseConfig';
+>>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
 
 export default function Cadastro() {
   const [nome, setNome] = useState('');
