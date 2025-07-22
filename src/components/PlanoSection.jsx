@@ -23,9 +23,11 @@ export default function PlanosSection() {
                 <p className="card-text">R$ {plano.valor}/mês</p>
               </div>
             </div>
-            <button onClick={voltar} className="btn btn-secondary mt-4" type="button">Voltar</button>
           </div>
         ))}
+        <div>
+          <button onClick={voltar} className="btn btn-secondary mt-4" type="button">Voltar</button>
+        </div>
       </div>
     </section>
   );

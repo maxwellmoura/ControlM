@@ -4,11 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-<<<<<<< HEAD
-import { auth, db } from '../config/firebaseConfig';
-=======
-import { auth, db } from '../firebaseConfig';
->>>>>>> cbf912b9474ebed377623fd99197e6d4ddf7b13d
+import { auth, db } from '../config/firebaseConfig'; // ou '../firebaseConfig', ajuste conforme seu projeto
 
 export default function Cadastro() {
   const [nome, setNome] = useState('');
@@ -54,10 +50,9 @@ export default function Cadastro() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
-      
       await setDoc(doc(db, "Usuarios", user.uid), {
-        nome: nome,
-        email: email,
+        nome,
+        email,
         criadoEm: new Date()
       });
 
@@ -78,7 +73,9 @@ export default function Cadastro() {
   return (
     <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
       <div className="card p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
-        <h4 className="text-center mb-2 fw-bold">Cadastro - Control<span className="text-primary">M</span></h4>
+        <h4 className="text-center mb-2 fw-bold">
+          Cadastro - Control<span className="text-primary">M</span>
+        </h4>
         <p className="text-center mb-4 text-muted">Faça seu cadastro abaixo</p>
 
         <form onSubmit={handleCadastro}>
