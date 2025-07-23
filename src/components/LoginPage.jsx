@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { app } from '../config/firebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore'; // 🔧 Firestore
+import { app, db } from '../firebaseConfig'; // 🔧 db importado
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function LoginPage() {
@@ -38,8 +39,6 @@ export default function LoginPage() {
     try {
       const resultado = await signInWithEmailAndPassword(auth, email, senha);
       const usuario = resultado.user;
-
-
       const token = await usuario.getIdTokenResult(true);
 
       if (token.claims.admin) {
@@ -71,6 +70,20 @@ export default function LoginPage() {
       const resultado = await signInWithPopup(auth, provider);
       const usuario = resultado.user;
 
+      // 🔍 Verifica se o usuário já existe na coleção 'Usuarios'
+      const userRef = doc(db, 'Usuarios', usuario.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // 📝 Cria novo usuário no Firestore
+        await setDoc(userRef, {
+          uid: usuario.uid,
+          nome: usuario.displayName || 'Sem nome',
+          email: usuario.email,
+          admin: false,
+          criadoEm: new Date(),
+        });
+      }
 
       const token = await usuario.getIdTokenResult(true);
 
@@ -84,6 +97,7 @@ export default function LoginPage() {
       setErro('Erro ao autenticar com o Google.');
     }
   };
+
   const irParaCadastro = () => {
     navigate('/cadastro');
   };

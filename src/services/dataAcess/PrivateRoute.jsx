@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getAdminStatus } from '../../config/getAdminStatus'; 
+import { getAdminStatus } from '../../getAdminStatus'; 
 
 export default function PrivateRoute({ children }) {
   const [carregando, setCarregando] = useState(true);
