@@ -1,7 +1,11 @@
 // Pages
 import LoginPage from './components/LoginPage';
 import Cadastro from './components/Cadastro';
+<<<<<<< HEAD
 import Painel from './components/Painel';
+=======
+import Painel from './components/PainelAdm';
+>>>>>>> 063e2937bc709c9ed9d4fc5f6e0ce9b9253aca11
 import LandingPage from './components/LandingPage'
 
 // React Router
