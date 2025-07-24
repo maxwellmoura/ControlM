@@ -1,0 +1,14 @@
+.esporte-card img {
+  object-fit: cover;
+  height: 200px;
+}
+
+.esporte-card .card-body {
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .esporte-card img {
+    height: 150px;
+  }
+}
