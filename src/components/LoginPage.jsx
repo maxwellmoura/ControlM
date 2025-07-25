@@ -6,12 +6,9 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
 } from 'firebase/auth';
-<<<<<<< HEAD
+
 import { app } from '../config/firebaseConfig';
-=======
-import { doc, getDoc, setDoc } from 'firebase/firestore'; // 🔧 Firestore
-import { app, db } from '../firebaseConfig'; // 🔧 db importado
->>>>>>> 063e2937bc709c9ed9d4fc5f6e0ce9b9253aca11
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function LoginPage() {
@@ -43,11 +40,7 @@ export default function LoginPage() {
     try {
       const resultado = await signInWithEmailAndPassword(auth, email, senha);
       const usuario = resultado.user;
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 063e2937bc709c9ed9d4fc5f6e0ce9b9253aca11
       const token = await usuario.getIdTokenResult(true);
 
       if (token.claims.admin) {
@@ -78,25 +71,6 @@ export default function LoginPage() {
     try {
       const resultado = await signInWithPopup(auth, provider);
       const usuario = resultado.user;
-
-<<<<<<< HEAD
-=======
-      // 🔍 Verifica se o usuário já existe na coleção 'Usuarios'
-      const userRef = doc(db, 'Usuarios', usuario.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        // 📝 Cria novo usuário no Firestore
-        await setDoc(userRef, {
-          uid: usuario.uid,
-          nome: usuario.displayName || 'Sem nome',
-          email: usuario.email,
-          admin: false,
-          criadoEm: new Date(),
-        });
-      }
->>>>>>> 063e2937bc709c9ed9d4fc5f6e0ce9b9253aca11
-
       const token = await usuario.getIdTokenResult(true);
 
       if (token.claims.admin) {
@@ -109,10 +83,6 @@ export default function LoginPage() {
       setErro('Erro ao autenticar com o Google.');
     }
   };
-<<<<<<< HEAD
-=======
-
->>>>>>> 063e2937bc709c9ed9d4fc5f6e0ce9b9253aca11
   const irParaCadastro = () => {
     navigate('/cadastro');
   };
