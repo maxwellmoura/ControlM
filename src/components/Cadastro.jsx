@@ -1,11 +1,9 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from '../config/firebaseConfig'; // ou '../firebaseConfig', ajuste conforme seu projeto
 
 export default function Cadastro() {
   const [nome, setNome] = useState('');
@@ -13,19 +11,14 @@ export default function Cadastro() {
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [erro, setErro] = useState('');
-  const [sucesso, setSucesso] = useState('');
   const navigate = useNavigate();
 
-  const validarEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
-
-  const voltar = () => {
-    navigate('/');
-  };
+  const validarEmail = (email) =>
+    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
 
   const handleCadastro = async (e) => {
     e.preventDefault();
     setErro('');
-    setSucesso('');
 
     if (!nome || !email || !senha || !confirmarSenha) {
       setErro('Preencha todos os campos.');
@@ -37,60 +30,78 @@ export default function Cadastro() {
       return;
     }
 
-    if (senha.length < 6) {
-      setErro('A senha deve ter no mínimo 6 caracteres.');
-      return;
-    }
-
     if (senha !== confirmarSenha) {
       setErro('As senhas não coincidem.');
       return;
     }
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-      const user = userCredential.user;
+    if (senha.length < 6) {
+      setErro('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
 
-      await setDoc(doc(db, "Usuarios", user.uid), {
+    try {
+      const auth = getAuth();
+      // Verificar se o email já está em uso
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      if (signInMethods.length > 0) {
+        setErro('Este e-mail já está registrado. Tente fazer login ou usar outro e-mail.');
+        return;
+      }
+
+      const resultado = await createUserWithEmailAndPassword(auth, email, senha);
+      const usuario = resultado.user;
+
+      await setDoc(doc(db, 'Usuarios', usuario.uid), {
+        uid: usuario.uid,
         nome,
         email,
-        criadoEm: new Date()
+        admin: false,
+        criadoEm: new Date().toISOString(),
       });
 
-      setSucesso('Cadastro realizado com sucesso!');
-      setNome('');
-      setEmail('');
-      setSenha('');
-      setConfirmarSenha('');
-
-      // Redireciona após 2 segundos
-      setTimeout(() => navigate('/'), 2000);
-    } catch (error) {
-      console.error(error);
-      setErro('Erro ao cadastrar: ' + error.message);
+      navigate('/');
+    } catch (erro) {
+      console.error('Erro no cadastro:', erro);
+      switch (erro.code) {
+        case 'auth/email-already-in-use':
+          setErro('Este e-mail já está registrado. Tente fazer login.');
+          break;
+        case 'auth/invalid-email':
+          setErro('E-mail inválido.');
+          break;
+        case 'auth/weak-password':
+          setErro('A senha é muito fraca. Use pelo menos 6 caracteres.');
+          break;
+        default:
+          setErro('Erro ao cadastrar. Tente novamente.');
+      }
     }
   };
 
   return (
     <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
-      <div className="card p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
-        <h4 className="text-center mb-2 fw-bold">
-          Cadastro - Control<span className="text-primary">M</span>
-        </h4>
-        <p className="text-center mb-4 text-muted">Faça seu cadastro abaixo</p>
-
+      <div className="card shadow-sm p-4" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="text-center mb-4">
+          <img
+            src="../src/assets/logo.png"
+            alt="ControlM Logo"
+            className="img-fluid mb-3"
+            style={{ maxHeight: '80px' }}
+          />
+          <h4 className="fw-bold">Cadastro - Control<span className="fs-1">M</span></h4>
+        </div>
         <form onSubmit={handleCadastro}>
           <div className="mb-3">
-            <label className="form-label">Nome completo</label>
+            <label className="form-label">Nome Completo</label>
             <input
               type="text"
               className="form-control"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="Seu nome"
+              placeholder="Seu nome completo"
             />
           </div>
-
           <div className="mb-3">
             <label className="form-label">E-mail</label>
             <input
@@ -98,10 +109,9 @@ export default function Cadastro() {
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@dominio.com"
+              placeholder="exemplo@gmail.com"
             />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Senha</label>
             <input
@@ -109,10 +119,9 @@ export default function Cadastro() {
               className="form-control"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
+              placeholder="••••••••"
             />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Confirmar Senha</label>
             <input
@@ -120,24 +129,27 @@ export default function Cadastro() {
               className="form-control"
               value={confirmarSenha}
               onChange={(e) => setConfirmarSenha(e.target.value)}
-              placeholder="Digite a senha novamente"
+              placeholder="••••••••"
             />
           </div>
-
           {erro && (
             <div className="alert alert-danger py-2 text-center" role="alert">
               {erro}
             </div>
           )}
-
-          {sucesso && (
-            <div className="alert alert-success py-2 text-center" role="alert">
-              {sucesso}
-            </div>
-          )}
-
-          <button type="submit" className="btn btn-success w-100">Cadastrar</button>
-          <button onClick={voltar} className="btn btn-secondary mt-2 w-100" type="button">Voltar</button>
+          <button type="submit" className="btn btn-primary w-100 mb-2">
+            Cadastrar
+          </button>
+          <div className="text-center mt-3">
+            <span className="text-muted fs-6">Já tem conta? </span>
+            <button
+              onClick={() => navigate('/inicio')}
+              className="btn btn-link p-0"
+              type="button"
+            >
+              Faça login
+            </button>
+          </div>
         </form>
       </div>
     </div>

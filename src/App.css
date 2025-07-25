@@ -1,14 +1,42 @@
-.esporte-card img {
-  object-fit: cover;
-  height: 200px;
-}
+ @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
-.esporte-card .card-body {
-  text-align: center;
-}
+ .esporte-card img {
+   object-fit: cover;
+   height: 200px;
+ }
 
-@media (max-width: 576px) {
-  .esporte-card img {
-    height: 150px;
-  }
-}
+ .esporte-card .card-body {
+   text-align: center;
+ }
+
+ .modal-img {
+   max-width: 100%;
+   height: auto;
+ }
+
+ .logo-img {
+   width: 60px;
+   height: auto;
+   filter: invert(100%);
+ }
+
+ .mb-1 {
+   font-size: 17px;
+ }
+
+ span {
+   font-size: 24px;
+   font-family: Roboto, sans-serif;
+   font-style: italic;
+   color: rgb(72, 72, 247);
+ }
+
+ .mb-0 {
+   font-size: 15px;
+ }
+
+ @media (max-width: 576px) {
+   .esporte-card img {
+     height: 150px;
+   }
+ }

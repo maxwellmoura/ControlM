@@ -6,9 +6,8 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
 } from 'firebase/auth';
-
-import { app } from '../config/firebaseConfig';
-
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { app, db } from '../config/firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function LoginPage() {
@@ -19,6 +18,7 @@ export default function LoginPage() {
 
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+  provider.addScope('profile');
 
   const validarEmail = (email) =>
     /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
@@ -41,16 +41,30 @@ export default function LoginPage() {
       const resultado = await signInWithEmailAndPassword(auth, email, senha);
       const usuario = resultado.user;
 
+      // Verificar se o documento do usuário existe no Firestore
+      const userRef = doc(db, 'Usuarios', usuario.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // Criar documento do usuário se não existir
+        await setDoc(userRef, {
+          uid: usuario.uid,
+          nome: usuario.displayName || 'Sem nome',
+          email: usuario.email,
+          admin: false,
+          criadoEm: new Date().toISOString(),
+        });
+      }
+
       const token = await usuario.getIdTokenResult(true);
 
       if (token.claims.admin) {
         navigate('/painel');
       } else {
-        navigate('/inicio');
+        navigate('/');
       }
     } catch (erro) {
-      console.error(erro);
-
+      console.error('Erro no login com email:', erro);
       switch (erro.code) {
         case 'auth/user-not-found':
           setErro('Usuário não encontrado.');
@@ -71,18 +85,33 @@ export default function LoginPage() {
     try {
       const resultado = await signInWithPopup(auth, provider);
       const usuario = resultado.user;
+
+      const userRef = doc(db, 'Usuarios', usuario.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: usuario.uid,
+          nome: usuario.displayName || 'Sem nome',
+          email: usuario.email,
+          admin: false,
+          criadoEm: new Date().toISOString(),
+        });
+      }
+
       const token = await usuario.getIdTokenResult(true);
 
       if (token.claims.admin) {
         navigate('/painel');
       } else {
-        navigate('/inicio');
+        navigate('/');
       }
     } catch (erro) {
-      console.error(erro);
-      setErro('Erro ao autenticar com o Google.');
+      console.error('Erro no login com Google:', erro.message, erro.code);
+      setErro(`Erro ao autenticar com o Google: ${erro.message}`);
     }
   };
+
   const irParaCadastro = () => {
     navigate('/cadastro');
   };
@@ -92,7 +121,7 @@ export default function LoginPage() {
       <div className="card shadow-sm p-4" style={{ maxWidth: '400px', width: '100%' }}>
         <div className="text-center mb-4">
           <img
-            src="../src/assets/ControlM_Logo.png"
+            src="../src/assets/logo.png"
             alt="ControlM Logo"
             className="img-fluid mb-3"
             style={{ maxHeight: '80px' }}
@@ -136,7 +165,7 @@ export default function LoginPage() {
             Entrar com Google
           </button>
           <div className="text-center mt-3">
-            <span className="text-muted">Não tem conta? </span>
+            <span className="text-muted fs-6">Não tem conta? </span>
             <button
               onClick={irParaCadastro}
               className="btn btn-link p-0"

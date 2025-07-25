@@ -1,52 +1,59 @@
 import { useState, useEffect } from 'react';
+     import { Form, Button } from 'react-bootstrap';
+     import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function PlanoForm({ onSubmit, planoEditar, cancelar }) {
-  const [text, setText] = useState('');
-  const [value, setValue] = useState('');
+     export default function PlanoForm({ onSubmit, planoEditar, cancelar }) {
+       const [form, setForm] = useState({ text: '', value: '' });
 
-  useEffect(() => {
-    if (planoEditar) {
-      setText(planoEditar.text || '');
-      setValue(planoEditar.value || '');
-    }
-  }, [planoEditar]);
+       useEffect(() => {
+         if (planoEditar) {
+           setForm({ text: planoEditar.text, value: planoEditar.value });
+         } else {
+           setForm({ text: '', value: '' });
+         }
+       }, [planoEditar]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!text || !value) return;
-    onSubmit({ text, value: Number(value) });
-    setText('');
-    setValue('');
-  };
+       const handleChange = (e) => {
+         const { name, value } = e.target;
+         setForm(prev => ({ ...prev, [name]: value }));
+       };
 
-  return (
-    <form onSubmit={handleSubmit} className="mb-4">
-      <div className="mb-2">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Nome do plano"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-      </div>
-      <div className="mb-2">
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Valor"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </div>
-      <button className="btn btn-success me-2" type="submit">
-        {planoEditar ? 'Atualizar' : 'Adicionar'}
-      </button>
-      {planoEditar && (
-        <button className="btn btn-secondary" type="button" onClick={cancelar}>
-          Cancelar
-        </button>
-      )}
-    </form>
-  );
-}
+       const handleSubmit = (e) => {
+         e.preventDefault();
+         onSubmit(form);
+         setForm({ text: '', value: '' });
+       };
+
+       return (
+         <Form onSubmit={handleSubmit} className="mb-4">
+           <Form.Group className="mb-3">
+             <Form.Label>Nome do Plano</Form.Label>
+             <Form.Control
+               type="text"
+               name="text"
+               value={form.text}
+               onChange={handleChange}
+               placeholder="Ex.: Plano Básico"
+             />
+           </Form.Group>
+           <Form.Group className="mb-3">
+             <Form.Label>Valor (R$/mês)</Form.Label>
+             <Form.Control
+               type="number"
+               name="value"
+               value={form.value}
+               onChange={handleChange}
+               placeholder="Ex.: 99.90"
+             />
+           </Form.Group>
+           <Button variant="primary" type="submit">
+             {planoEditar ? 'Atualizar' : 'Adicionar'}
+           </Button>
+           {planoEditar && (
+             <Button variant="secondary" className="ms-2" onClick={cancelar}>
+               Cancelar
+             </Button>
+           )}
+         </Form>
+       );
+     }
