@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, updateEmail } from 'firebase/auth';
+import { getAuth, updateEmail, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 import { getPlansAccess } from '../services/plansAcess';
@@ -20,15 +20,15 @@ export default function EditarCadastro() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const auth = getAuth();
-  const user = auth.currentUser;
 
   useEffect(() => {
-    if (!user) {
-      navigate('/inicio');
-      return;
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false);
+        navigate('/inicio');
+        return;
+      }
 
-    async function carregarDadosUsuario() {
       try {
         // Carregar dados do usuário
         const userRef = doc(db, 'Usuarios', user.uid);
@@ -68,10 +68,10 @@ export default function EditarCadastro() {
       } finally {
         setLoading(false);
       }
-    }
+    });
 
-    carregarDadosUsuario();
-  }, [user, navigate]);
+    return () => unsubscribe();
+  }, [navigate, auth]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,7 +79,7 @@ export default function EditarCadastro() {
   };
 
   const validarEmail = (email) =>
-    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+    /^[\w-.]+@([\w-]+\.)+[\w-.]{2,}$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,6 +97,8 @@ export default function EditarCadastro() {
 
     try {
       setLoading(true);
+      const user = auth.currentUser;
+
       // Atualizar email no Firebase Authentication, se necessário
       if (form.email !== user.email) {
         await updateEmail(user, form.email);
@@ -112,7 +114,7 @@ export default function EditarCadastro() {
 
       navigate('/');
     } catch (error) {
-      console.error('Erro ao atualizar dados:', error);
+      console.error('Erro ao salvar dados:', error);
       switch (error.code) {
         case 'auth/email-already-in-use':
           setErro('Este e-mail já está em uso por outra conta.');
@@ -122,7 +124,7 @@ export default function EditarCadastro() {
           navigate('/inicio');
           break;
         default:
-          setErro('Erro ao salvar as alterações. Tente novamente.');
+          setErro('Erro ao salvar as alterações.');
       }
     } finally {
       setLoading(false);
@@ -141,7 +143,7 @@ export default function EditarCadastro() {
           {erro}
         </div>
       )}
-      <Form onSubmit={handleSubmit} style={{ maxWidth: '500px', margin: 'auto' }}>
+      <Form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: 'auto' }}>
         <Form.Group className="mb-3">
           <Form.Label>Nome Completo</Form.Label>
           <Form.Control
@@ -149,18 +151,18 @@ export default function EditarCadastro() {
             name="nome"
             value={form.nome}
             onChange={handleChange}
-            placeholder="Seu nome completo"
+            placeholder="Seu nome"
             required
           />
         </Form.Group>
         <Form.Group className="mb-3">
-          <Form.Label>E-mail</Form.Label>
+          <Form.Label>Email</Form.Label>
           <Form.Control
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="exemplo@gmail.com"
+            placeholder="exemplo@email.com"
             required
           />
         </Form.Group>

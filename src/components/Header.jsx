@@ -48,6 +48,9 @@ export default function Header() {
                 <li className="nav-item">
                   <a className="nav-link" href="/pagamento">Pagamento</a>
                 </li>
+                 <li className="nav-item">
+                  <a className="nav-link" href="/painel">Administrativo</a>
+                </li>
               </ul>
             </div>
           )}

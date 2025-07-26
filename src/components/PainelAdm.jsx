@@ -18,6 +18,8 @@ import PlanoForm from './PlanoForm';
 import { db } from '../config/firebaseConfig';
 import { Modal, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Header from './Header';
+import Footer from './Footer'
 
 export default function PainelAdm() {
   const [usuarios, setUsuarios] = useState([]);
@@ -125,10 +127,12 @@ export default function PainelAdm() {
   const voltar = () => navigate('/');
 
   return (
+    
     <div className="container mt-5">
+      <Header />
       <h2 className="text-center mb-4">Painel Administrativo - ControlM</h2>
 
-      {/* === USUÁRIOS === */}
+      
       <h4 className="mt-4">Usuários Cadastrados</h4>
       <table className="table table-striped mt-3">
         <thead>
@@ -300,6 +304,7 @@ export default function PainelAdm() {
       <button onClick={voltar} className="btn btn-secondary mt-4" type="button">
         Voltar
       </button>
+      <Footer />
     </div>
   );
 }

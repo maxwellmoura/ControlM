@@ -5,7 +5,8 @@ import jiuAdulto from '../../src/assets/esportes/jiujitsu-adulto.jpg';
 import jiuBaby from '../../src/assets/esportes/jiujitsu-baby.jpg';
 import kickboxer from '../../src/assets/esportes/kickboxer.jpeg';
 import nogi from '../../src/assets/esportes/nogi.jpeg'
-import capoeira from '../assets/esportes/nogi.jpeg'
+import capoeira from '../assets/esportes/capoeiraadulto.jpeg'
+import capoeirakids from '../assets/esportes/capoeirakids.jpeg'
 import { useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 
@@ -51,9 +52,16 @@ export default function EsportesSection() {
     {
       imagem: capoeira,
       titulo: 'Capoeira',
-      descricao: 'Condicionamento físico e técnicas de combate reais sem kimono',
+      descricao: 'Condicionamento físico e técnicas de combate com a arte marcial mais antiga do brasil',
       horario: "Horário",
-      time: '17:30(Segunda e Quarta)'
+      time: '21:00(Terça e Quinta)'
+    },
+    {
+      imagem: capoeirakids,
+      titulo: 'Capoeira Kids',
+      descricao: 'Condicionamento físico, técnicas e confiança para os seus pequenos ',
+      horario: "Horário",
+      time: '17:30 áS 18:30(Segundas e Quartas)'
     },
   ];
 
