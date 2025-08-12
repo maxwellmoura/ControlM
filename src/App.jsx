@@ -1,28 +1,34 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import Cadastro from './components/Cadastro';
 import PainelAdm from './components/PainelAdm';
 import LandingPage from './components/LandingPage';
 import EditarCadastro from './components/EditarCadastro';
-import MudarPlano from './components/MudarPlano';
-import Pagamento from './components/Pagamento';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import PrivateRoute from '../src/services/dataAcess/PrivateRoute';
+import PrivateRoute from './services/dataAcess/PrivateRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
+  // Configura as rotas principais do aplicativo
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/admin" element={<LoginPage />} />
+        {/* Página de login para /inicio e /admin */}
         <Route path="/inicio" element={<LoginPage />} />
+        <Route path="/admin" element={<LoginPage />} />
+        {/* Página inicial com esportes e planos */}
         <Route path="/" element={<LandingPage />} />
+        {/* Página de cadastro */}
         <Route path="/cadastro" element={<Cadastro />} />
+        Painel administrativo, mensagem de erro na renderização protegido por PrivateRoute
+        <Route path="/painel" element={<ErrorBoundary><PainelAdm /></ErrorBoundary>} />
+        {/* Painel administrativo, protegido por PrivateRoute */}
         <Route path="/painel" element={<PrivateRoute><PainelAdm /></PrivateRoute>} />
+        {/* Página de edição de perfil */}
         <Route path="/editar-cadastro" element={<EditarCadastro />} />
-        <Route path="/mudar-plano" element={<MudarPlano />} />
-        <Route path="/pagamento" element={<Pagamento />} />
+        {/* Rota padrão redireciona para login */}
         <Route path="*" element={<LoginPage />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

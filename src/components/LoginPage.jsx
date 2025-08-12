@@ -1,120 +1,125 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  getAuth,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { app, db } from '../config/firebaseConfig';
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function LoginPage() {
+function LoginPage() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
+  const [mensagemErro, setMensagemErro] = useState('');
   const navigate = useNavigate();
+  const auth = getAuth();
+  const provedorGoogle = new GoogleAuthProvider();
 
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-  provider.addScope('profile');
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(usuario => {
+      if (usuario) {
+        const documentoUsuario = doc(db, 'Usuarios', usuario.uid);
+        getDoc(documentoUsuario).then(docSnapshot => {
+          if (docSnapshot.exists()) {
+            usuario.getIdTokenResult(true).then(token => {
+              if (token.claims.admin || docSnapshot.data().admin) {
+                navigate('/painel');
+              } else {
+                navigate('/');
+              }
+            });
+          } else {
+            auth.signOut();
+            setMensagemErro('Conta não encontrada. Por favor, faça um novo cadastro.');
+          }
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
-  const validarEmail = (email) =>
-    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  function emailValido(email) {
+    return /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  }
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setErro('');
+  function loginComEmail(evento) {
+    evento.preventDefault();
+    setMensagemErro('');
 
     if (!email || !senha) {
-      setErro('Preencha todos os campos.');
+      setMensagemErro('Preencha todos os campos.');
       return;
     }
 
-    if (!validarEmail(email)) {
-      setErro('E-mail inválido.');
+    if (!emailValido(email)) {
+      setMensagemErro('Formato de e-mail inválido.');
       return;
     }
 
-    try {
-      const resultado = await signInWithEmailAndPassword(auth, email, senha);
-      const usuario = resultado.user;
+    signInWithEmailAndPassword(auth, email, senha)
+      .then(resultado => {
+        const usuario = resultado.user;
+        const documentoUsuario = doc(db, 'Usuarios', usuario.uid);
 
-      // Verificar se o documento do usuário existe no Firestore
-      const userRef = doc(db, 'Usuarios', usuario.uid);
-      const userSnap = await getDoc(userRef);
+        getDoc(documentoUsuario).then(docSnapshot => {
+          if (!docSnapshot.exists()) {
+            auth.signOut();
+            setMensagemErro('Conta não encontrada. Por favor, faça um novo cadastro.');
+            return;
+          }
 
-      if (!userSnap.exists()) {
-        // Criar documento do usuário se não existir
-        await setDoc(userRef, {
-          uid: usuario.uid,
-          nome: usuario.displayName || 'Sem nome',
-          email: usuario.email,
-          admin: false,
-          criadoEm: new Date().toISOString(),
+          usuario.getIdTokenResult(true).then(token => {
+            if (token.claims.admin || docSnapshot.data().admin) {
+              navigate('/painel');
+            } else {
+              navigate('/');
+            }
+          });
         });
-      }
+      })
+      .catch(erro => {
+        console.error('Erro no login:', erro);
+        if (erro.code === 'auth/user-not-found') {
+          setMensagemErro('Usuário não encontrado.');
+        } else if (erro.code === 'auth/wrong-password') {
+          setMensagemErro('Senha incorreta.');
+        } else if (erro.code === 'auth/invalid-email') {
+          setMensagemErro('E-mail inválido.');
+        } else {
+          setMensagemErro('Falha no login. Tente novamente.');
+        }
+      });
+  }
 
-      const token = await usuario.getIdTokenResult(true);
+  function loginComGoogle() {
+    signInWithPopup(auth, provedorGoogle)
+      .then(resultado => {
+        const usuario = resultado.user;
+        const documentoUsuario = doc(db, 'Usuarios', usuario.uid);
 
-      if (token.claims.admin) {
-        navigate('/painel');
-      } else {
-        navigate('/');
-      }
-    } catch (erro) {
-      console.error('Erro no login com email:', erro);
-      switch (erro.code) {
-        case 'auth/user-not-found':
-          setErro('Usuário não encontrado.');
-          break;
-        case 'auth/wrong-password':
-          setErro('Senha incorreta.');
-          break;
-        case 'auth/invalid-email':
-          setErro('E-mail inválido.');
-          break;
-        default:
-          setErro('Erro ao autenticar. Tente novamente.');
-      }
-    }
-  };
+        getDoc(documentoUsuario).then(docSnapshot => {
+          if (!docSnapshot.exists()) {
+            auth.signOut();
+            setMensagemErro('Conta não encontrada. Por favor, faça um novo cadastro.');
+            return;
+          }
 
-  const loginComGoogle = async () => {
-    try {
-      const resultado = await signInWithPopup(auth, provider);
-      const usuario = resultado.user;
-
-      const userRef = doc(db, 'Usuarios', usuario.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          uid: usuario.uid,
-          nome: usuario.displayName || 'Sem nome',
-          email: usuario.email,
-          admin: false,
-          criadoEm: new Date().toISOString(),
+          usuario.getIdTokenResult(true).then(token => {
+            if (token.claims.admin || docSnapshot.data().admin) {
+              navigate('/painel');
+            } else {
+              navigate('/');
+            }
+          });
         });
-      }
+      })
+      .catch(erro => {
+        console.error('Erro no login com Google:', erro);
+        setMensagemErro('Falha no login com Google: ' + erro.message);
+      });
+  }
 
-      const token = await usuario.getIdTokenResult(true);
-
-      if (token.claims.admin) {
-        navigate('/painel');
-      } else {
-        navigate('/');
-      }
-    } catch (erro) {
-      console.error('Erro no login com Google:', erro.message, erro.code);
-      setErro(`Erro ao autenticar com o Google: ${erro.message}`);
-    }
-  };
-
-  const irParaCadastro = () => {
+  function irParaCadastro() {
     navigate('/cadastro');
-  };
+  }
 
   return (
     <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
@@ -122,20 +127,20 @@ export default function LoginPage() {
         <div className="text-center mb-4">
           <img
             src="../src/assets/logo.png"
-            alt="ControlM Logo"
+            alt="Logo ControlM"
             className="img-fluid mb-3"
             style={{ maxHeight: '80px' }}
           />
           <h4 className="fw-bold">Login - Control<span className="fs-1">M</span></h4>
         </div>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={loginComEmail}>
           <div className="mb-3">
             <label className="form-label">E-mail</label>
             <input
               type="email"
               className="form-control"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={evento => setEmail(evento.target.value)}
               placeholder="exemplo@gmail.com"
             />
           </div>
@@ -145,13 +150,13 @@ export default function LoginPage() {
               type="password"
               className="form-control"
               value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              onChange={evento => setSenha(evento.target.value)}
               placeholder="••••••••"
             />
           </div>
-          {erro && (
+          {mensagemErro && (
             <div className="alert alert-danger py-2 text-center" role="alert">
-              {erro}
+              {mensagemErro}
             </div>
           )}
           <button type="submit" className="btn btn-primary w-100 mb-2">
@@ -179,3 +184,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;

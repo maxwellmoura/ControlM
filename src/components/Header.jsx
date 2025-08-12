@@ -1,61 +1,97 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import logo from '../../src/assets/logo.png';
-import '../App.css';
+import { Link, useNavigate } from 'react-router-dom';
+import { getAuth, signOut } from 'firebase/auth';
+import { verificarAdmin } from '../services/authService';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function Header() {
-  const [user, setUser] = useState(null);
+function Header() {
+  const [ehAdmin, setEhAdmin] = useState(false);
+  const [estaLogado, setEstaLogado] = useState(false);
   const navigate = useNavigate();
+  const auth = getAuth();
 
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (usuario) => {
-      setUser(usuario);
+  // Verifica se o usuário está logado e se é administrador
+  useEffect(function verificarUsuario() {
+    const unsubscribe = auth.onAuthStateChanged(function(usuario) {
+      if (usuario) {
+        setEstaLogado(true);
+        verificarAdmin().then(function(status) {
+          setEhAdmin(status);
+        });
+      } else {
+        setEstaLogado(false);
+        setEhAdmin(false);
+      }
     });
-    return () => unsubscribe();
-  }, []);
+    return function limpar() {
+      unsubscribe();
+    };
+  }, [auth]);
+
+  // Função para sair
+  function sair() {
+    signOut(auth).then(function() {
+      navigate('/inicio');
+    });
+  }
 
   return (
-    <header>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div className="container">
-          <a className="navbar-brand d-flex align-items-center" href="/">
-            <img src={logo} alt="logo" className="logo-img me-2" />
-            <span className="fs-4">Academia Control<span className="text-primary">M</span></span>
-          </a>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          {user && (
-            <div className="collapse navbar-collapse" id="navbarNav">
-              <ul className="navbar-nav ms-auto">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+      <div className="container">
+        <Link className="navbar-brand" to="/">
+          <img src="../src/assets/logo.png" alt="ControlM" style={{ height: '40px' }} />
+        </Link>
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav ms-auto">
+            {estaLogado && (
+              <>
                 <li className="nav-item">
-                  <a className="nav-link" href="/editar-cadastro">Editar Cadastro</a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/mudar-plano">Mudar de Plano</a>
+                  <Link className="nav-link" to="/">
+                    Início
+                  </Link>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="/pagamento">Pagamento</a>
+                  <Link className="nav-link" to="/editar-cadastro">
+                    Editar Cadastro
+                  </Link>
                 </li>
-                 <li className="nav-item">
-                  <a className="nav-link" href="/painel">Administrativo</a>
+                {ehAdmin && (
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/painel">
+                      Administrativo
+                    </Link>
+                  </li>
+                )}
+                <li className="nav-item">
+                  <button className="nav-link btn btn-link" onClick={sair}>
+                    Sair
+                  </button>
                 </li>
-              </ul>
-            </div>
-          )}
+              </>
+            )}
+            {!estaLogado && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/inicio">
+                  Login
+                </Link>
+              </li>
+            )}
+          </ul>
         </div>
-      </nav>
-    </header>
+      </div>
+    </nav>
   );
 }
+
+export default Header;

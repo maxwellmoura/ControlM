@@ -1,5 +1,18 @@
  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
+ .esporte-card {
+   transition: transform 0.3s ease;
+ }
+
+ .esporte-card:hover {
+   transform: scale(1.05);
+ }
+
+ .modal-img {
+   max-height: 500px;
+   object-fit: cover;
+ }
+
  .esporte-card img {
    object-fit: cover;
    height: 200px;
@@ -7,11 +20,6 @@
 
  .esporte-card .card-body {
    text-align: center;
- }
-
- .modal-img {
-   max-width: 100%;
-   height: auto;
  }
 
  .logo-img {
@@ -25,9 +33,9 @@
  }
 
  span {
-   font-size: 24px;
+   font-size: 185x;
    font-family: Roboto, sans-serif;
-   font-style: italic;
+   font-weight: bold;
    color: rgb(72, 72, 247);
  }
 

@@ -2,30 +2,44 @@ import { getAuth } from 'firebase/auth';
 import { db } from '../config/firebaseConfig';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 
-const usersReference = collection(db, 'Usuarios');
+// Coleção para armazenar dados de usuários
+const colecaoUsuarios = collection(db, 'Usuarios');
 
-export async function addUserAccess(user) {
-  if (!user || typeof user !== 'object') {
-    throw new Error('Dados inválidos');
+// Adiciona um novo usuário no Firestore
+function adicionarUsuario(dadosUsuario) {
+  if (!dadosUsuario) {
+    throw new Error('Nenhum dado de usuário fornecido.');
   }
-  const response = await addDoc(usersReference, user);
-  return response;
+  return addDoc(colecaoUsuarios, {
+    ...dadosUsuario,
+    telefone: dadosUsuario.telefone || ''
+  });
 }
 
-export async function updateUserAccess(userId, data) {
-  if (!userId || !data || typeof data !== 'object') {
+// Atualiza dados de um usuário no Firestore
+function atualizarUsuario(idUsuario, dadosUsuario) {
+  if (!idUsuario || !dadosUsuario) {
     throw new Error('ID ou dados inválidos.');
   }
-  const userRef = doc(db, 'Usuarios', userId);
-  await updateDoc(userRef, data);
+  const documentoUsuario = doc(db, 'Usuarios', idUsuario);
+  return updateDoc(documentoUsuario, {
+    ...dadosUsuario,
+    telefone: dadosUsuario.telefone || ''
+  });
 }
 
-export async function getAdminStatus() {
+// Verifica se o usuário atual é administrador
+function verificarAdmin() {
   const auth = getAuth();
-  const usuario = auth.currentUser;
+  const usuarioAtual = auth.currentUser;
 
-  if (!usuario) return false;
+  if (!usuarioAtual) {
+    return Promise.resolve(false);
+  }
 
-  const token = await usuario.getIdTokenResult(true);
-  return token.claims.admin === true;
+  return usuarioAtual.getIdTokenResult(true)
+    .then(token => token.claims.admin === true)
+    .catch(() => false);
 }
+
+export { adicionarUsuario, atualizarUsuario, verificarAdmin };

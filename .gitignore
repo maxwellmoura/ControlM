@@ -24,3 +24,16 @@ dist-ssr
 *.sw?
 src/serviceAccountKey.json
 
+# env
+.env
+.env.*.local
+*.env
+
+# service accounts / chaves
+serviceAccount*.json
+*serviceAccount*key*.json
+
+# build / deps / zips
+dist
+node_modules
+*.zip

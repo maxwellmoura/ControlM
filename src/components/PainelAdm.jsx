@@ -1,310 +1,335 @@
-import { useEffect, useState } from 'react';
+// src/components/PainelAdm.jsx
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAuth } from 'firebase/auth';
+import { Button, Table } from 'react-bootstrap';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import Header from './Header';
+import Footer from './Footer';
+import UserTable from './UserTable';
+import UserEditModal from './UserEditModal';
+import UserPlansModal from './UserPlansModal';
+import PlanAdeptosModal from './PlanAdeptosModal';
+import PlanoForm from './PlanoForm';
+import CashFlowModal from './CashFlowModal';
+import OverdueUsersModal from './OverdueUsersModal';
+import {
+  calcularValorTotalPlanos,
+  obterDataVencimentoMaisRecente,
+  verificarAdmin,          // mantém o verificador que você já usa no projeto
+  contarAdeptosPlano,
+} from '../services/adminService';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Firestore (tempo real e operações)
 import {
   collection,
-  getDocs,
-  doc,
-  deleteDoc,
+  onSnapshot,
+  addDoc,
   updateDoc,
+  deleteDoc,
+  doc,
 } from 'firebase/firestore';
-import {
-  getPlansAccess,
-  addPlansAccess,
-  updatePlansAccess,
-  deletePlansAccess,
-} from '../services/plansAcess';
-import { updateUserAccess } from '../../src/services/authService';
-import PlanoForm from './PlanoForm';
 import { db } from '../config/firebaseConfig';
-import { Modal, Button, Form } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Header from './Header';
-import Footer from './Footer'
 
-export default function PainelAdm() {
+function PainelAdm() {
   const [usuarios, setUsuarios] = useState([]);
   const [planos, setPlanos] = useState([]);
-  const [editandoPlano, setEditandoPlano] = useState(null);
+  const [adeptosPorPlano, setAdeptosPorPlano] = useState({});
   const [editandoUsuario, setEditandoUsuario] = useState(null);
-  const [formUsuario, setFormUsuario] = useState({
-    nome: '',
-    email: '',
-    planoNome: '',
-    planoData: '',
-    admin: false,
-  });
+  const [editandoPlano, setEditandoPlano] = useState(null);
+  const [mostrarPlanosUsuario, setMostrarPlanosUsuario] = useState(null);
+  const [mostrarAdeptosPlano, setMostrarAdeptosPlano] = useState(null);
+  const [mostrarCashFlow, setMostrarCashFlow] = useState(false);
+  const [mostrarOverdueUsers, setMostrarOverdueUsers] = useState(false);
+  const [erro, setErro] = useState('');
   const navigate = useNavigate();
+  const auth = getAuth();
 
-  const carregarUsuarios = async () => {
-    const snapshot = await getDocs(collection(db, 'Usuarios'));
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setUsuarios(lista);
-  };
-
-  const carregarPlanos = async () => {
-    try {
-      const dados = await getPlansAccess();
-      setPlanos(dados);
-    } catch (error) {
-      console.error('Erro ao carregar planos:', error);
-    }
-  };
-
+  // Guarda unsubscribers para limpar listeners
   useEffect(() => {
-    carregarUsuarios();
-    carregarPlanos();
-  }, []);
+    let unsubUsuarios = null;
+    let unsubPlanos = null;
 
-  const excluirUsuario = async (id) => {
-    if (window.confirm('Deseja realmente excluir este usuário?')) {
-      await deleteDoc(doc(db, 'Usuarios', id));
-      carregarUsuarios();
-    }
-  };
+    verificarAdmin(auth, navigate).then(({ isAdmin, error }) => {
+      if (!isAdmin) {
+        setErro(error);
+        navigate(error.includes('logado') ? '/inicio' : '/');
+        return;
+      }
 
-  const abrirEdicaoUsuario = (usuario) => {
-    setEditandoUsuario(usuario);
-    setFormUsuario({
-      nome: usuario.nome || '',
-      email: usuario.email || '',
-      planoNome: usuario.planoNome || '',
-      planoData: usuario.planoData || '',
-      admin: usuario.admin || false,
+      // 🔴 Tempo real: Usuarios
+      unsubUsuarios = onSnapshot(
+        collection(db, 'Usuarios'),
+        (snap) => {
+          const lista = snap.docs.map((d) => {
+            const data = d.data() || {};
+            return {
+              id: d.id,
+              nome: data.nome || 'Sem nome',
+              email: data.email || 'N/A',
+              planos: Array.isArray(data.planos) ? data.planos : [],
+              ehAdmin: !!data.admin,
+              telefone: data.telefone || '',
+              criadoEm: data.criadoEm || 'N/A',
+            };
+          });
+          setUsuarios(lista);
+        },
+        (err) => {
+          console.error('Erro (onSnapshot Usuarios):', err);
+          setErro('Erro ao carregar usuários.');
+        }
+      );
+
+      // 🔴 Tempo real: Planos
+      unsubPlanos = onSnapshot(
+        collection(db, 'Planos'),
+        (snap) => {
+          const lista = snap.docs.map((d) => {
+            const data = d.data() || {};
+            return {
+              id: d.id,
+              text: data.text || 'Plano sem nome',
+              value: Number(data.value) || 0,
+            };
+          });
+          setPlanos(lista);
+        },
+        (err) => {
+          console.error('Erro (onSnapshot Planos):', err);
+          setErro('Erro ao carregar planos.');
+        }
+      );
     });
-  };
 
-  const handleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormUsuario(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+    return () => {
+      if (unsubUsuarios) unsubUsuarios();
+      if (unsubPlanos) unsubPlanos();
+    };
+  }, [navigate, auth]);
 
-  const salvarEdicaoUsuario = async () => {
+  // 🔵 Recalcula adeptosPorPlano sempre que usuarios/planos mudarem
+  useEffect(() => {
+    // nomePlano -> array de { id, nome, email, telefone, adesoes }
+    const mapa = {};
+
+    usuarios.forEach((u) => {
+      const arr = Array.isArray(u.planos) ? u.planos : [];
+      // conta quantas adesões do mesmo plano o usuário tem
+      const counts = new Map();
+      arr.forEach((p) => {
+        if (!p?.nome) return;
+        counts.set(p.nome, (counts.get(p.nome) || 0) + 1);
+      });
+
+      counts.forEach((qtd, planoNome) => {
+        if (!mapa[planoNome]) mapa[planoNome] = [];
+        mapa[planoNome].push({
+          id: u.id,
+          nome: u.nome,
+          email: u.email,
+          telefone: u.telefone,
+          adesoes: qtd,
+        });
+      });
+    });
+
+    setAdeptosPorPlano(mapa);
+  }, [usuarios, planos]);
+
+  function gerarRelatorioPDF() {
+    const docPdf = new jsPDF();
+    docPdf.text('Relatório de Usuários - ControlM', 10, 10);
+    docPdf.text('Data: ' + new Date().toLocaleDateString('pt-BR'), 10, 20);
+
+    const dados = usuarios.map((usuario) => {
+      const vencimento = obterDataVencimentoMaisRecente(usuario.planos);
+      return [
+        usuario.nome || 'Sem nome',
+        usuario.email || 'N/A',
+        usuario.telefone || 'N/A',
+        usuario.planos.length > 0
+          ? usuario.planos.map((p) => p.nome || 'N/A').join(', ')
+          : 'Nenhum',
+        usuario.ehAdmin ? 'Sim' : 'Não',
+        vencimento.texto,
+        calcularValorTotalPlanos(usuario.planos, planos),
+      ];
+    });
+
+    autoTable(docPdf, {
+      startY: 30,
+      head: [['Nome', 'E-mail', 'Telefone', 'Planos', 'Admin', 'Vencimento', 'Valor Total']],
+      body: dados,
+    });
+
+    docPdf.save('relatorio_usuarios.pdf');
+  }
+
+  function abrirEdicaoUsuario(usuario) {
+    setEditandoUsuario(usuario);
+  }
+
+  function abrirEdicaoPlano(plano) {
+    setEditandoPlano(plano);
+  }
+
+  function abrirDetalhesPlanos(usuario) {
+    setMostrarPlanosUsuario(usuario);
+  }
+
+  function abrirAdeptosPlano(planoNome) {
+    setMostrarAdeptosPlano(planoNome);
+  }
+
+  // ✅ Agora não chamamos mais "carregarPlanos" ao salvar/excluir: os listeners cuidam do refresh
+  async function handleSalvarPlano(dados) {
     try {
-      await updateUserAccess(editandoUsuario.id, formUsuario);
-      setEditandoUsuario(null);
-      carregarUsuarios();
+      if (editandoPlano) {
+        await updateDoc(doc(db, 'Planos', editandoPlano.id), {
+          text: dados.text,
+          value: Number(dados.value) || 0,
+        });
+        setEditandoPlano(null);
+      } else {
+        await addDoc(collection(db, 'Planos'), {
+          text: dados.text,
+          value: Number(dados.value) || 0,
+        });
+      }
     } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      alert('Erro ao salvar as alterações.');
+      console.error('Erro ao salvar plano:', error);
+      setErro('Erro ao salvar plano.');
     }
-  };
+  }
 
-  const calcularDataFinal = (planoData) => {
-    if (!planoData) return 'N/A';
-    const data = new Date(planoData);
-    data.setDate(data.getDate() + 30);
-    return new Date().toLocaleDateString('pt-BR');
-  };
-
-  const getPrimeiroNome = (nomeCompleto) => {
-    return nomeCompleto ? nomeCompleto.split(' ')[0] : 'Sem nome';
-  };
-
-  const adicionarPlano = async (novo) => {
-    await addPlansAccess(novo);
-    carregarPlanos();
-  };
-
-  const atualizarPlano = async (dados) => {
-    await updatePlansAccess(editandoPlano.id, dados);
-    setEditandoPlano(null);
-    carregarPlanos();
-  };
-
-  const excluirPlano = async (id) => {
-    if (window.confirm('Deseja realmente excluir este plano?')) {
-      await deletePlansAccess(id);
-      carregarPlanos();
+  async function handleExcluirPlano(id) {
+    if (!window.confirm('Tem certeza que deseja excluir este plano?')) return;
+    try {
+      await deleteDoc(doc(db, 'Planos', id));
+      // onSnapshot fará o restante
+    } catch (error) {
+      console.error('Erro ao excluir plano:', error);
+      setErro('Erro ao excluir plano.');
     }
-  };
-
-  const voltar = () => navigate('/');
+  }
 
   return (
-    
     <div className="container mt-5">
       <Header />
-      <h2 className="text-center mb-4">Painel Administrativo - ControlM</h2>
+      <h2 className="text-center mb-4">Painel Administrativo</h2>
+      {erro && <div className="alert alert-danger py-2 text-center">{erro}</div>}
 
-      
-      <h4 className="mt-4">Usuários Cadastrados</h4>
-      <table className="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Plano Aderido</th>
-            <th>Data de Adesão</th>
-            <th>Data Final</th>
-            <th>Admin</th>
-            <th>Criado Em</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((usuario) => (
-            <tr key={usuario.id}>
-              <td title={usuario.nome || 'Sem nome'}>
-                {getPrimeiroNome(usuario.nome)}
-              </td>
-              <td>{usuario.email || 'N/A'}</td>
-              <td>{usuario.planoNome || 'Nenhum'}</td>
-              <td>{usuario.planoData || 'N/A'}</td>
-              <td>{calcularDataFinal(usuario.planoData)}</td>
-              <td>{usuario.admin ? 'Sim' : 'Não'}</td>
-              <td>
-                {usuario.criadoEm
-                  ? new Date(usuario.criadoEm).toLocaleDateString('pt-BR')
-                  : 'N/A'}
-              </td>
-              <td>
-                <button
-                  className="btn btn-sm btn-warning me-2"
-                  onClick={() => abrirEdicaoUsuario(usuario)}
-                >
-                  Editar
-                </button>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => excluirUsuario(usuario.id)}
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h4>Usuários</h4>
+      <Button onClick={gerarRelatorioPDF} className="me-2">Gerar Relatório PDF</Button>
+      <Button onClick={() => setMostrarCashFlow(true)} className="me-2">Ver Fluxo de Caixa</Button>
+      <Button onClick={() => setMostrarOverdueUsers(true)}>Ver Inadimplentes</Button>
 
-      {/* Modal para edição de usuário */}
-      <Modal show={!!editandoUsuario} onHide={() => setEditandoUsuario(null)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Editar Usuário</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Nome Completo</Form.Label>
-              <Form.Control
-                type="text"
-                name="nome"
-                value={formUsuario.nome}
-                onChange={handleFormChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={formUsuario.email}
-                onChange={handleFormChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Plano</Form.Label>
-              <Form.Select
-                name="planoNome"
-                value={formUsuario.planoNome}
-                onChange={handleFormChange}
-              >
-                <option value="">Nenhum</option>
-                {planos.map((plano) => (
-                  <option key={plano.id} value={plano.text}>
-                    {plano.text}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Data de Adesão</Form.Label>
-              <Form.Control
-                type="date"
-                name="planoData"
-                value={formUsuario.planoData}
-                onChange={handleFormChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Administrador"
-                name="admin"
-                checked={formUsuario.admin}
-                onChange={handleFormChange}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setEditandoUsuario(null)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={salvarEdicaoUsuario}>
-            Salvar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <UserTable
+        usuarios={usuarios}
+        planos={planos}
+        abrirEdicaoUsuario={abrirEdicaoUsuario}
+        abrirDetalhesPlanos={abrirDetalhesPlanos}
+        // exclusão de usuário pode continuar vindo do seu service, se quiser
+        excluirUsuario={async (id) => {
+          if (!window.confirm('Quer mesmo excluir este usuário?')) return;
+          try {
+            await deleteDoc(doc(db, 'Usuarios', id));
+          } catch (e) {
+            console.error('Erro ao excluir usuário:', e);
+            setErro('Erro ao excluir usuário.');
+          }
+        }}
+      />
 
-      <hr />
-
-      {/* === PLANOS === */}
-      <h4 className="mt-4">Gerenciar Planos</h4>
+      <h4 className="mt-4">Planos</h4>
       <PlanoForm
-        onSubmit={editandoPlano ? atualizarPlano : adicionarPlano}
+        onSubmit={handleSalvarPlano}
         planoEditar={editandoPlano}
         cancelar={() => setEditandoPlano(null)}
       />
 
-      <table className="table table-bordered">
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Valor</th>
+            <th>Preço</th>
+            <th>Adeptos</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody>
-          {planos.map((plano) => (
-            <tr key={plano.id}>
-              <td>{plano.text}</td>
-              <td>R$ {plano.value}</td>
-              <td>
-                <button
-                  className="btn btn-sm btn-warning me-2"
-                  onClick={() => setEditandoPlano(plano)}
+          {planos.map((plano) => {
+            const total = contarAdeptosPlano(plano.text, adeptosPorPlano);
+            return (
+              <tr key={plano.id}>
+                <td>{plano.text}</td>
+                <td>R$ {Number(plano.value).toFixed(2)}</td>
+                <td
+                  style={{ cursor: total > 0 ? 'pointer' : 'default' }}
+                  onClick={() => total > 0 && abrirAdeptosPlano(plano.text)}
                 >
-                  Editar
-                </button>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => excluirPlano(plano.id)}
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
+                  {total}
+                </td>
+                <td>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => abrirEdicaoPlano(plano)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="ms-2"
+                    onClick={() => handleExcluirPlano(plano.id)}
+                  >
+                    Excluir
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
           {planos.length === 0 && (
             <tr>
-              <td colSpan="3" className="text-center text-muted">
+              <td colSpan="4" className="text-center text-muted">
                 Nenhum plano cadastrado.
               </td>
             </tr>
           )}
         </tbody>
-      </table>
+      </Table>
 
-      <button onClick={voltar} className="btn btn-secondary mt-4" type="button">
-        Voltar
-      </button>
+      <UserEditModal
+        editandoUsuario={editandoUsuario}
+        setEditandoUsuario={setEditandoUsuario}
+        planos={planos}
+        // ao salvar dentro do modal, o onSnapshot atualiza a tabela automaticamente
+        carregarUsuarios={() => {}}
+      />
+      <UserPlansModal
+        mostrarPlanosUsuario={mostrarPlanosUsuario}
+        setMostrarPlanosUsuario={setMostrarPlanosUsuario}
+      />
+      <PlanAdeptosModal
+        mostrarAdeptosPlano={mostrarAdeptosPlano}
+        setMostrarAdeptosPlano={setMostrarAdeptosPlano}
+        adeptosPorPlano={adeptosPorPlano}
+      />
+      <CashFlowModal
+        show={mostrarCashFlow}
+        onHide={() => setMostrarCashFlow(false)}
+      />
+      <OverdueUsersModal
+        show={mostrarOverdueUsers}
+        onHide={() => setMostrarOverdueUsers(false)}
+      />
       <Footer />
     </div>
   );
 }
+
+export default PainelAdm;

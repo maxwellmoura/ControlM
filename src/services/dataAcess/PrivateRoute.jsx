@@ -1,28 +1,60 @@
-import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getAdminStatus } from '../authService';
+import { verificarAdmin } from '../authService';
+import { Alert } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function PrivateRoute({ children }) {
-  const [isAdmin, setIsAdmin] = useState(null);
+function PrivateRoute(props) {
+  const conteudo = props.children;
+  const [ehAdmin, setEhAdmin] = useState(null);
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
+  useEffect(function verificarUsuario() {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (usuario) => {
+    const unsubscribe = onAuthStateChanged(auth, function(usuario) {
       if (usuario) {
-        const adminStatus = await getAdminStatus();
-        setIsAdmin(adminStatus);
+        verificarAdmin().then(function(statusAdmin) {
+          setEhAdmin(statusAdmin);
+          if (!statusAdmin) {
+            setMostrarAlerta(true);
+            setTimeout(function() {
+              navigate('/');
+              setMostrarAlerta(false);
+            }, 3000);
+          }
+        });
       } else {
-        setIsAdmin(false);
+        setEhAdmin(false);
+        navigate('/inicio');
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return function limpar() {
+      unsubscribe();
+    };
+  }, [navigate]);
 
-  if (isAdmin === null) {
-    return <div>Carregando...</div>;
+  if (ehAdmin === null) {
+    return <div className="container mt-5 text-center">Carregando...</div>;
   }
 
-  return isAdmin ? children : <Navigate to="/inicio" />;
+  return (
+    <div>
+      {mostrarAlerta && (
+        <Alert
+          variant="warning"
+          className="text-center"
+          onClose={function() { setMostrarAlerta(false); }}
+          dismissible
+        >
+          Essa área só pode ser acessada por um administrador.
+        </Alert>
+      )}
+      {ehAdmin ? conteudo : null}
+    </div>
+  );
 }
+
+export default PrivateRoute;
