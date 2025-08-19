@@ -16,6 +16,7 @@ function PlanoSection() {
   const [planos, setPlanos] = useState([]);
   const [mensagemErro, setMensagemErro] = useState('');
   const [usuario, setUsuario] = useState(null);
+  const [horario, setHorario] = useState('');
   const auth = getAuth();
 
   // Escuta o usuário logado (corrige o uso de auth.currentUser no render)
@@ -44,7 +45,7 @@ function PlanoSection() {
     return () => unsub();
   }, []);
 
-  // Adere a um plano com transação (evita duplicar e resolve corrida)
+  // Função para tratar a adesão do plano
   async function aderirPlano(plano) {
     setMensagemErro('');
     if (!usuario) {
@@ -52,54 +53,51 @@ function PlanoSection() {
       return;
     }
 
-    try {
-      const userRef = doc(db, 'Usuarios', usuario.uid);
+    // Se for o plano "Aula Experimental", enviar mensagem para o WhatsApp cadastrado no sistema
+    if (plano.text === 'Aula Experimental') {
       const hoje = new Date();
-
       const dataAdesao = formatarDataLocal(hoje);
-      const exp = new Date(hoje);
-      exp.setMonth(exp.getMonth() + 1);
-      const dataExpiracao = formatarDataLocal(exp);
+      const mensagem = encodeURIComponent(`Olá, tenho uma nova adesão para a Aula Experimental. O nome do usuário é ${usuario.displayName}.`);
+      const whatsappUrl = `https://api.whatsapp.com/send/?phone=%2B5511999999999&text=${mensagem}`;
+      console.log('Gerando link de WhatsApp:', whatsappUrl);
+      window.open(whatsappUrl, '_blank');
 
-      await runTransaction(db, async (transaction) => {
-        const snap = await transaction.get(userRef);
-        const atuais = snap.exists() && Array.isArray(snap.data().planos)
-          ? snap.data().planos
-          : [];
+    } else {
+      // Caso não seja a "Aula Experimental", faz a adesão do plano normalmente
+      try {
+        const userRef = doc(db, 'Usuarios', usuario.uid);
+        const hoje = new Date();
+        const dataAdesao = formatarDataLocal(hoje);
+        const exp = new Date(hoje);
+        exp.setMonth(exp.getMonth() + 1);
+        const dataExpiracao = formatarDataLocal(exp);
 
-        // Evita duplicar adesão ativa do mesmo plano (baseado no nome)
-        const jaTemAtivo = atuais.some((p) => {
-          if (!p?.nome || !p?.dataExpiracao) return false;
-          if (p.nome !== plano.text) return false;
-          // considera ativo se expiração >= hoje
-          const expDate = new Date(p.dataExpiracao);
-          expDate.setHours(0, 0, 0, 0);
-          const h = new Date(hoje);
-          h.setHours(0, 0, 0, 0);
-          return expDate >= h;
+        await runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(userRef);
+          const atuais = snap.exists() && Array.isArray(snap.data().planos) ? snap.data().planos : [];
+
+          const jaTemAtivo = atuais.some((p) => {
+            if (!p?.nome || !p?.dataExpiracao) return false;
+            if (p.nome !== plano.text) return false;
+            const expDate = new Date(p.dataExpiracao);
+            expDate.setHours(0, 0, 0, 0);
+            const h = new Date(hoje);
+            h.setHours(0, 0, 0, 0);
+            return expDate >= h;
+          });
+
+          if (jaTemAtivo) {
+            throw new Error(`Você já possui uma adesão ativa do plano "${plano.text}".`);
+          }
+
+          const novoPlano = { nome: plano.text, dataAdesao, dataExpiracao };
+          transaction.update(userRef, { planos: [...atuais, novoPlano] });
         });
 
-        if (jaTemAtivo) {
-          throw new Error(
-            `Você já possui uma adesão ativa do plano "${plano.text}".`
-          );
-        }
-
-        const novoPlano = {
-          nome: plano.text,
-          dataAdesao,
-          dataExpiracao,
-        };
-
-        transaction.update(userRef, { planos: [...atuais, novoPlano] });
-      });
-
-      alert(`Você aderiu ao plano ${plano.text}!`);
-    } catch (erro) {
-      console.error('Erro ao aderir ao plano:', erro);
-      setMensagemErro(
-        erro?.message || 'Erro ao aderir ao plano. Tente novamente.'
-      );
+        alert(`Você aderiu ao plano ${plano.text}!`);
+      } catch (err) {
+        setMensagemErro(err.message);
+      }
     }
   }
 
@@ -128,12 +126,22 @@ function PlanoSection() {
               <Card.Body>
                 <Card.Title className="fs-6">{plano.text}</Card.Title>
                 <Card.Text>Preço: R$ {plano.value.toFixed(2)}</Card.Text>
+                {plano.text === 'Aula Experimental' && (
+                  <div>
+                    <input
+                      type="date"
+                      value={horario}
+                      onChange={(e) => setHorario(e.target.value)}
+                      placeholder="Escolha o dia"
+                    />
+                  </div>
+                )}
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => aderirPlano(plano)}
                 >
-                  Aderir a este Plano
+                  {plano.text === 'Aula Experimental' ? 'Agendar Aula Experimental' : 'Aderir a este Plano'}
                 </Button>
               </Card.Body>
             </Card>

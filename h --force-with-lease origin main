@@ -1,0 +1,27 @@
+* [33m037ca82[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m chore: projeto ControlM - setup sem segredos
+* [33mb579687[m Versão 1.3b Implementa EditarCadastro.jsx e remove PrivateRoute de rotas públicas
+* [33m3face37[m Versão 1.3b Implementa EditarCadastro.jsx e remove PrivateRoute de rotas públicas
+* [33mf57976d[m Versão 1.1b estabilizada
+*   [33m5b8b87b[m[33m ([m[1;32mmaster[m[33m)[m 1.1b versão - ajuste no diretorio
+[32m|[m[33m\[m  
+[32m|[m * [33md56e954[m Subindo Fluxo + Dependencias de instalação
+* [33m|[m [33m392fa1e[m 1.1b versão - ajuste no diretorio
+ [33m/[m  
+[33m|[m * [33m063e293[m[33m ([m[1;31morigin/main[m[33m)[m Subindo Fluxo + Dependencias de instalação
+[33m|[m[33m/[m  
+* [33mf218ae3[m versão 1.2 - subindo novas funcionabilidades
+* [33mc5ee93a[m versão 1.1 - subindo novas funcionabilidades
+* [33m4eb4159[m Adicionando serviceAccountKey.json ao .gitignore
+* [33m3da69f0[m Removendo chave secreta do histórico
+*   [33mbb07625[m Tentando subir novas funcionalidades
+[35m|[m[36m\[m  
+[35m|[m * [33m94b8f6d[m Add files via upload
+* [36m|[m [33m4b2b941[m Versão 1.2
+[36m|[m[36m/[m  
+* [33mc2277af[m Versão 1.1 - Novas funcionabilidade do login, cadastro e paneil
+*   [33m512f8c5[m Versão 1.0 - Novas funcionabilidade do login, cadastro e paneil
+[1;31m|[m[1;32m\[m  
+[1;31m|[m * [33ma526f22[m Removendo o Conteudo do README.md
+* [1;32m|[m [33mc3a6414[m Versão 1.0 - Novas funcionabilidade do login, cadastro e paneil
+[1;32m|[m[1;32m/[m  
+* [33ma89ac18[m Subindo Projeto do Controle de Alunos

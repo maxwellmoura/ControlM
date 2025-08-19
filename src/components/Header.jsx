@@ -39,7 +39,7 @@ function Header() {
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container">
         <Link className="navbar-brand" to="/">
-          <img src="../src/assets/logo.png" alt="ControlM" style={{ height: '40px' }} />
+          <img src="../src/assets/logo.png" alt="ControlM" style={{ height: '110px' }} />
         </Link>
         <button
           className="navbar-toggler"

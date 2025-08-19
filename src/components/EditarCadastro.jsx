@@ -95,6 +95,7 @@ export default function EditarCadastro() {
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`;
     console.log('Gerando link de WhatsApp:', urlWhatsApp);
     window.open(urlWhatsApp, '_blank');
+    
   }
 
   return (
