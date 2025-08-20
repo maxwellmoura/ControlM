@@ -1,133 +1,111 @@
 import React, { useState, useEffect } from "react";
-import { Spinner, Alert, Container, Row, Col } from "react-bootstrap"; // Importando componentes do Bootstrap
-import FeedbackForm from "../FeedbackForm"; // Importando o FeedbackForm
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { Spinner, Alert, Container, Row, Col, Card } from "react-bootstrap";
+import FeedbackForm from "../FeedbackForm";
+import { getFirestore, collection, query, where, getDocs} from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const db = getFirestore();
 
 const Dashboard = () => {
-  const [completedPlan, setCompletedPlan] = useState(null); // Variável de estado para verificar se o plano foi concluído
-  const [loading, setLoading] = useState(true); // Variável de estado para carregar a verificação
-  const [error, setError] = useState(""); // Mensagem de erro, caso algo dê errado
-  const [feedbacks, setFeedbacks] = useState([]); // Armazenar os feedbacks carregados
-  const [userName, setUserName] = useState(""); // Armazenar o nome do usuário logado
-  const user = getAuth().currentUser;
-
-  // Função para carregar feedbacks do Firestore
-  const loadFeedbacks = async () => {
-    if (user) {
-      // Carregar feedbacks do usuário logado
-      const q = query(
-        collection(db, "Feedbacks"),
-        where("userId", "==", user.uid)
-      );
-      try {
-        const querySnapshot = await getDocs(q);
-        console.log("Feedbacks carregados:", querySnapshot.docs);
-
-        const feedbackList = querySnapshot.docs.map((doc) => doc.data());
-        setFeedbacks(feedbackList);
-        setCompletedPlan(feedbackList.length > 0); // Se já tiver feedback, marcar o plano como completado
-      } catch (err) {
-        console.error("Erro ao carregar feedbacks:", err);
-        setError("Erro ao carregar feedbacks.");
-      }
-    } else {
-      // Se não houver usuário logado, carregar feedbacks de todos os usuários
-      const q = query(collection(db, "Feedbacks"));
-      try {
-        const querySnapshot = await getDocs(q);
-        const feedbackList = querySnapshot.docs.map((doc) => doc.data());
-        setFeedbacks(feedbackList);
-        setLoading(false); // Finaliza o carregamento
-      } catch (err) {
-        console.error("Erro ao carregar feedbacks:", err);
-        setError("Erro ao carregar feedbacks.");
-      }
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [userName, setUserName] = useState("");
+  const [isLogged, setIsLogged] = useState(false);
+  const [completedPlan] = useState(true); // mantenho true pra sempre renderizar a área
 
   useEffect(() => {
-    if (user) {
-      setUserName(user.displayName); // Define o nome do usuário logado
-    } else {
-      setUserName("");
-    }
-
-    loadFeedbacks(); // Carregar feedbacks ao iniciar
-  }, [user]); // Roda sempre que o usuário mudar (exemplo: após login)
-
-  useEffect(() => {
-    // Simulação de consulta ao Firestore para verificar o status do plano
-    setTimeout(() => {
-      try {
-        const userHasCompletedPlan = true; // Exemplo: consulta retornou que o plano foi completado
-        setCompletedPlan(userHasCompletedPlan);
-        setLoading(false);
-      } catch (err) {
-        setError("Houve um erro ao carregar o seu plano.");
-        setLoading(false);
-      }
-    }, 2000); // Simulando um tempo de carregamento de 2 segundos
+    const auth = getAuth();
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setIsLogged(!!u);
+      setUserName(u ? (u.displayName || u.email || "Cliente") : "");
+      await loadFeedbacks(u);
+    });
+    return () => unsub();
   }, []);
+
+  async function loadFeedbacks(user) {
+    setLoading(true);
+    setError("");
+
+    try {
+      let q;
+      if (user) {
+        // ✅ logado: apenas os meus (aprovados ou não)
+        q = query(collection(db, "Feedbacks"), where("userId", "==", user.uid));
+      } else {
+        // ✅ não logado: somente aprovados (todos os usuários)
+        q = query(
+          collection(db, "Feedbacks"),
+          where("approved", "==", true)
+        );
+      }
+
+      
+
+      const snap = await getDocs(q);
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setFeedbacks(list);
+    } catch (e) {
+      console.error("Erro ao carregar feedbacks:", e);
+      setError("Erro ao carregar feedbacks.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Container className="mt-4">
       <Row className="d-flex justify-content-center">
-        <Col xs={12} md={8} lg={6}>
+        <Col xs={12} md={10} lg={10} xl={8}>
           <h1 className="mb-4 text-center">Feedbacks</h1>
 
-          {/* Exibição de feedback para carregamento ou erro */}
           {loading ? (
-            <Spinner animation="border" variant="primary" />
+            <div className="d-flex justify-content-center"><Spinner animation="border" variant="primary" /></div>
           ) : error ? (
             <Alert variant="danger">{error}</Alert>
           ) : (
             <div>
-              {/* Se o usuário estiver logado, exibe seu nome */}
-              {user && <h3>Bem-vindo, {userName}!</h3>}
+              {isLogged && <h5 className="mb-3 text-center">Bem-vindo, {userName}!</h5>}
 
-              {/* Verificando se o plano foi completado */}
               {completedPlan ? (
-                <div>
-                  {/* Exibindo feedbacks enviados */}
-                  <div className="mt-4">
-                    <h4>Feedbacks enviados:</h4>
+                <>
+                  {/* Cards lado a lado */}
+                  <div className="d-flex flex-wrap gap-3 justify-content-center mb-3">
                     {feedbacks.length > 0 ? (
-                      <div className="d-flex flex-wrap">
-                        {feedbacks.map((feedback, index) => (
-                          <div
-                            key={index}
-                            className="feedback-card p-3 m-2" // Adicionando padding e margem para separar os feedbacks
-                            style={{ width: "calc(33% - 1rem)" }} // Cada feedback ocupará um terço da largura disponível
-                          >
-                            <strong>Cliente:</strong> {feedback.userName} <br />
-                            <strong>Avaliação:</strong> {feedback.rating} <br />
-                            <strong>Comentários:</strong> {feedback.comments}
-                          </div>
-                        ))}
-                      </div>
+                      feedbacks.map((fb) => (
+                        <Card key={fb.id} style={{ width: "20rem" }}>
+                          <Card.Body>
+                            <Card.Title className="mb-2">{fb.userName || "Cliente"}</Card.Title>
+                            <Card.Subtitle className="mb-2 text-muted">
+                              Avaliação: {fb.rating}/5
+                            </Card.Subtitle>
+                            <Card.Text className="mb-1" style={{ whiteSpace: "pre-wrap" }}>
+                              {fb.comments || "Sem comentário"}
+                            </Card.Text>
+                           
+                            {isLogged && fb.approved === false && (
+                              <span className="badge text-bg-secondary">
+                                Pendente de aprovação
+                              </span>
+                            )}
+                          </Card.Body>
+                        </Card>
+                      ))
                     ) : (
-                      <p className="text-center">
-                        Nenhum feedback enviado ainda.
-                      </p>
+                      <p className="text-center mb-0">Nenhum feedback encontrado.</p>
                     )}
                   </div>
 
-                  {/* Exibindo o formulário de feedback */}
-                  <FeedbackForm planId="12345" />
-                </div>
+                  {/* Formulário somente quando logado */}
+                  {isLogged && (
+                    <div className="mt-4">
+                      <FeedbackForm planId="12345" />
+                    </div>
+                  )}
+                </>
               ) : (
-                <p className="text-center">
-                  Você ainda não completou nenhum plano. Continue seu progresso!
-                </p>
+                <p className="text-center">Você ainda não completou nenhum plano. Continue seu progresso!</p>
               )}
             </div>
           )}

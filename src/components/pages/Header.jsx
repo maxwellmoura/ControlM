@@ -30,9 +30,10 @@ function Header() {
 
   // Função para sair
   function sair() {
-    signOut(auth).then(function() {
-      navigate('/');
+    signOut(auth).then(() => {
+      navigate('/', {replace: true});
     });
+    
   }
 
   return (

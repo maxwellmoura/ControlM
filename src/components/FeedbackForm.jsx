@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { Button, Form, Alert } from "react-bootstrap";
 
 const db = getFirestore();
 
 const FeedbackForm = ({ planId }) => {
-  const [rating, setRating] = useState(1); // Nota de 1 a 5
+  const [rating, setRating] = useState(1);
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -25,37 +25,34 @@ const FeedbackForm = ({ planId }) => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    // Verifique se o displayName está presente
-    console.log('Display Name:', user.displayName);  // Adicionando log para verificar o nome do usuário
-
-    const userName = user.displayName || user.email; // Fallback para email caso displayName não esteja disponível
-
     try {
+      const userName = user.displayName || user.email || 'Cliente';
+
       await addDoc(collection(db, "Feedbacks"), {
         userId: user.uid,
-        userName: userName,  // Armazenando o nome do usuário junto com o feedback
-        planId: planId,
-        rating: rating,
-        comments: comments,
-        createdAt: new Date(),
+        userName,
+        planId: planId || null,
+        rating: Number(rating),
+        comments: comments.trim(),
+        approved: false,               // ✅ entra pendente
+        createdAt: serverTimestamp(),  // ✅ usa server time
       });
 
-      setSuccessMessage("Feedback enviado com sucesso!");
+      setSuccessMessage("Feedback enviado com sucesso! Aguarde aprovação.");
       setRating(1);
       setComments('');
     } catch (error) {
       console.error("Erro ao enviar feedback:", error);
       setErrorMessage("Houve um erro ao enviar seu feedback");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Deixe seu feedback</h2>
+      <h2 className="mb-4 text-center">Deixe seu feedback</h2>
 
-      {/* Exibição de mensagem de sucesso ou erro */}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
@@ -66,11 +63,10 @@ const FeedbackForm = ({ planId }) => {
             as="select"
             value={rating}
             onChange={(e) => setRating(Number(e.target.value))}
+            size="sm"
           >
             {[1, 2, 3, 4, 5].map((i) => (
-              <option key={i} value={i}>
-                {i}
-              </option>
+              <option key={i} value={i}>{i}</option>
             ))}
           </Form.Control>
         </Form.Group>
@@ -83,10 +79,11 @@ const FeedbackForm = ({ planId }) => {
             value={comments}
             onChange={(e) => setComments(e.target.value)}
             placeholder="O que você achou da aula ou plano?"
+            style={{ fontSize: "0.9rem" }}
           />
         </Form.Group>
 
-        <Button type="submit" variant="primary" disabled={isSubmitting}>
+        <Button type="submit" variant="primary" disabled={isSubmitting} className="w-100">
           {isSubmitting ? "Enviando..." : "Enviar Feedback"}
         </Button>
       </Form>

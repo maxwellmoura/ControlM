@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Header from '../components/pages/Header';
 import Footer from '../components/pages/Footer';
+import FeedbackAdmin from './pages/FeedbackAdmin';
 import UserTable from './UserTable';
 import UserEditModal from './UserEditModal';
 import UserPlansModal from './UserPlansModal';
@@ -327,6 +328,7 @@ function PainelAdm() {
         show={mostrarOverdueUsers}
         onHide={() => setMostrarOverdueUsers(false)}
       />
+      <FeedbackAdmin />
       <Footer />
     </div>
   );

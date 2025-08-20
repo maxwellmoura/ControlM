@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
-import { formatarDataParaExibicao, formatarTelefone } from '../services/adminService';
+import { formatarDataParaExibicao } from '../services/adminService';
 import Header from './Header';
 import Footer from './Footer';
 import { Form, Button, Table } from 'react-bootstrap';
@@ -75,7 +75,7 @@ export default function EditarCadastro() {
       console.log('Dados do usuário atualizados:', { nome, email, telefone, planos });
       setSucesso('Cadastro atualizado com sucesso!');
       setTimeout(function() {
-        navigate('/planos');
+        navigate('/');
       }, 2000);
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
