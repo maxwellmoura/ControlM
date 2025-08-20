@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import PrivateRoute from './services/dataAcess/PrivateRoute';
 
+
 // Lazy load dos componentes
 const LoginPage = lazy(() => import('./components/LoginPage'));
 const Cadastro = lazy(() => import('./components/Cadastro'));

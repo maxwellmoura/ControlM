@@ -116,7 +116,7 @@ function LoginPage() {
       console.log("Enviando e-mail de recuperação para:", emailRecuperacao); // Log para verificar o e-mail
       await sendPasswordResetEmail(auth, emailRecuperacao);
       setMensagemErro(
-        "E-mail de recuperação enviado! Verifique sua caixa de entrada."
+        "E-mail de recuperação enviado! Verifique sua caixa de entrada ou seu SPAM."
       );
       setRecuperacaoVisible(false); // Fecha o formulário após enviar o e-mail
     } catch (error) {
