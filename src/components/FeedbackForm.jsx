@@ -83,7 +83,7 @@ const FeedbackForm = ({ planId }) => {
           />
         </Form.Group>
 
-        <Button type="submit" variant="primary" disabled={isSubmitting} className="w-100">
+        <Button type="submit" variant="primary" disabled={isSubmitting} className="w-10 mb-5">
           {isSubmitting ? "Enviando..." : "Enviar Feedback"}
         </Button>
       </Form>

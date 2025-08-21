@@ -31,9 +31,11 @@ function Header() {
   // Função para sair
   function sair() {
     signOut(auth).then(() => {
-      navigate('/', {replace: true});
+      // Redireciona para a página inicial (Landing Page) após logout
+      navigate('/', { replace: true });
+    }).catch((error) => {
+      console.error("Erro ao sair:", error);
     });
-    
   }
 
   return (

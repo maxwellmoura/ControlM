@@ -43,6 +43,20 @@
    font-size: 15px;
  }
 
+ .feedback-card {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  margin-bottom: ;
+}
+
+.feedback-card:hover {
+  transform: scale(1.05);  /* Efeito de hover para dar uma leve animação */
+}
+
+
  @media (max-width: 576px) {
    .esporte-card img {
      height: 150px;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Spinner, Alert, Container, Row, Col, Card } from "react-bootstrap";
+import { Spinner, Alert, Container, Row, Col, Card, Badge } from "react-bootstrap";
 import FeedbackForm from "../FeedbackForm";
-import { getFirestore, collection, query, where, getDocs} from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const db = getFirestore();
@@ -31,17 +31,12 @@ const Dashboard = () => {
     try {
       let q;
       if (user) {
-        // ✅ logado: apenas os meus (aprovados ou não)
+        // ✅ logado: somente os meus feedbacks (aprovados ou não)
         q = query(collection(db, "Feedbacks"), where("userId", "==", user.uid));
       } else {
-        // ✅ não logado: somente aprovados (todos os usuários)
-        q = query(
-          collection(db, "Feedbacks"),
-          where("approved", "==", true)
-        );
+        // ✅ não logado: somente feedbacks aprovados (de todos os usuários)
+        q = query(collection(db, "Feedbacks"), where("approved", "==", true));
       }
-
-      
 
       const snap = await getDocs(q);
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -57,11 +52,13 @@ const Dashboard = () => {
   return (
     <Container className="mt-4">
       <Row className="d-flex justify-content-center">
-        <Col xs={12} md={10} lg={10} xl={8}>
+        <Col xs={12} md={10} lg={8} xl={6}>
           <h1 className="mb-4 text-center">Feedbacks</h1>
 
           {loading ? (
-            <div className="d-flex justify-content-center"><Spinner animation="border" variant="primary" /></div>
+            <div className="d-flex justify-content-center">
+              <Spinner animation="border" variant="primary" />
+            </div>
           ) : error ? (
             <Alert variant="danger">{error}</Alert>
           ) : (
@@ -71,24 +68,19 @@ const Dashboard = () => {
               {completedPlan ? (
                 <>
                   {/* Cards lado a lado */}
-                  <div className="d-flex flex-wrap gap-3 justify-content-center mb-3">
+                  <div className="d-flex flex-wrap gap-4 justify-content-center">
                     {feedbacks.length > 0 ? (
                       feedbacks.map((fb) => (
-                        <Card key={fb.id} style={{ width: "20rem" }}>
+                        <Card key={fb.id} className="feedback-card" style={{ width: "22rem" }}>
                           <Card.Body>
-                            <Card.Title className="mb-2">{fb.userName || "Cliente"}</Card.Title>
+                            <Card.Title>{fb.userName || "Cliente"}</Card.Title>
                             <Card.Subtitle className="mb-2 text-muted">
                               Avaliação: {fb.rating}/5
                             </Card.Subtitle>
-                            <Card.Text className="mb-1" style={{ whiteSpace: "pre-wrap" }}>
-                              {fb.comments || "Sem comentário"}
-                            </Card.Text>
-                           
-                            {isLogged && fb.approved === false && (
-                              <span className="badge text-bg-secondary">
-                                Pendente de aprovação
-                              </span>
-                            )}
+                            <Card.Text>{fb.comments || "Sem comentário"}</Card.Text>
+
+                            {/* Status do feedback */}
+                          
                           </Card.Body>
                         </Card>
                       ))
