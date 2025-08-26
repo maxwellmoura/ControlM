@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { Button, Form, Alert } from "react-bootstrap";
@@ -11,7 +11,14 @@ const FeedbackForm = ({ planId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [userName, setUserName] = useState('');
   const user = getAuth().currentUser;
+
+  useEffect(() => {
+    if (user) {
+      setUserName(user.displayName || 'Cliente');
+    }
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,11 +33,9 @@ const FeedbackForm = ({ planId }) => {
     setSuccessMessage('');
 
     try {
-      const userName = user.displayName || user.email || 'Cliente';
-
       await addDoc(collection(db, "Feedbacks"), {
         userId: user.uid,
-        userName,
+        userName,  // Atualiza o nome do usuário ao enviar feedback
         planId: planId || null,
         rating: Number(rating),
         comments: comments.trim(),
