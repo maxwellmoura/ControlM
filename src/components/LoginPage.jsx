@@ -121,6 +121,7 @@ function LoginPage() {
   return (
     <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "80vh" }}>
       <div className="w-100" style={{ maxWidth: 420 }}>
+<<<<<<< HEAD
           <div className="text-center mb-4">
           <img
             src="../src/assets/logo.png"
@@ -130,6 +131,9 @@ function LoginPage() {
           />         
         </div>
         <h3 className="mb-4 text-center">Entrar Control<span className="fs-1 fst-italic">M</span></h3>
+=======
+        <h3 className="mb-4 text-center">Entrar</h3>
+>>>>>>> c83b540208afa59820023f9e93420db94f202c50
 
         {erro && (
           <div className="alert alert-danger py-2 text-center" role="alert">
@@ -137,7 +141,18 @@ function LoginPage() {
           </div>
         )}
 
+<<<<<<< HEAD
        
+=======
+        <button
+          type="button"
+          className="btn btn-outline-danger w-100 mb-3"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          {loading ? "Entrando..." : "Entrar com Google"}
+        </button>
+>>>>>>> c83b540208afa59820023f9e93420db94f202c50
 
         <form onSubmit={handleEmailLogin}>
           <div className="mb-3">
@@ -160,6 +175,7 @@ function LoginPage() {
               required
             />
           </div>
+<<<<<<< HEAD
           
 
           <button type="submit" className="btn btn-primary w-100" disabled={loading}>
@@ -174,6 +190,13 @@ function LoginPage() {
           {loading ? "Entrando..." : "Entrar com Google"}
         </button>
 
+=======
+
+          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
+
+>>>>>>> c83b540208afa59820023f9e93420db94f202c50
           <div className="d-flex justify-content-between mt-3">
             <button
               type="button"
