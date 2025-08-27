@@ -9,6 +9,7 @@
     "clean": "rm -rf .vite"
   },
   "dependencies": {
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@google-cloud/storage": "^7.16.0",
     "bootstrap": "^5.3.7",
     "chart.js": "^4.5.0",

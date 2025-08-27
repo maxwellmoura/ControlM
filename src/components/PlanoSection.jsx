@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
@@ -6,6 +5,7 @@ import {
   onSnapshot,
   doc,
   runTransaction,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 import { Button, Card } from 'react-bootstrap';
@@ -73,31 +73,76 @@ function PlanoSection() {
         const dataExpiracao = formatarDataLocal(exp);
 
         await runTransaction(db, async (transaction) => {
-          const snap = await transaction.get(userRef);
-          const atuais = snap.exists() && Array.isArray(snap.data().planos) ? snap.data().planos : [];
+          // Primeiras leituras: usuário e plano
+          const userSnap = await transaction.get(userRef);
+          const planoRef = doc(db, 'Planos', plano.id);
+          const planoSnap = await transaction.get(planoRef);
 
-          const jaTemAtivo = atuais.some((p) => {
-            if (!p?.nome || !p?.dataExpiracao) return false;
-            if (p.nome !== plano.text) return false;
-            const expDate = new Date(p.dataExpiracao);
-            expDate.setHours(0, 0, 0, 0);
-            const h = new Date(hoje);
-            h.setHours(0, 0, 0, 0);
-            return expDate >= h;
-          });
+          // Se o usuário não existe ou o plano não existe
+          if (!userSnap.exists()) {
+            throw new Error("Usuário não encontrado.");
+          }
+          if (!planoSnap.exists()) {
+            throw new Error("Plano não encontrado.");
+          }
+
+          // Lógica de adesão: Verificar se já tem o plano ativo
+          const atuais = userSnap.data().planos || [];
+          const jaTemAtivo = atuais.some((p) => p.nome === plano.text && p.dataExpiracao >= dataAdesao);
 
           if (jaTemAtivo) {
             throw new Error(`Você já possui uma adesão ativa do plano "${plano.text}".`);
           }
 
+          // Atualizar o plano do usuário
           const novoPlano = { nome: plano.text, dataAdesao, dataExpiracao };
           transaction.update(userRef, { planos: [...atuais, novoPlano] });
+
+          // Atualizar a contagem de adeptos no plano
+          const currentAdeptos = planoSnap.data().adeptos || 0;
+          transaction.update(planoRef, { adeptos: currentAdeptos + 1 });
         });
 
         alert(`Você aderiu ao plano ${plano.text}!`);
       } catch (err) {
-        setMensagemErro(err.message);
+        setMensagemErro(`Erro ao aderir ao plano: ${err.message}`);
       }
+    }
+  }
+
+  // Função para excluir o plano e remover de todos os usuários
+  async function excluirPlano(idPlano) {
+    try {
+      // 1) Obter os documentos dos usuários que possuem esse plano
+      const usuariosRef = collection(db, 'Usuarios');
+      const usuariosSnap = await usuariosRef.get();
+
+      // 2) Remover o plano de todos os usuários que o possuem
+      const batch = db.batch();
+      usuariosSnap.forEach((usuarioDoc) => {
+        const usuarioData = usuarioDoc.data();
+        const planos = usuarioData.planos || [];
+
+        // Filtra o plano que está sendo excluído
+        const novosPlanos = planos.filter(plano => plano.id !== idPlano);
+
+        // Se o plano foi removido, atualiza o documento do usuário
+        if (novosPlanos.length !== planos.length) {
+          const usuarioRef = doc(db, 'Usuarios', usuarioDoc.id);
+          batch.update(usuarioRef, { planos: novosPlanos });
+        }
+      });
+
+      // 3) Excluir o plano na coleção 'Planos'
+      const planoRef = doc(db, 'Planos', idPlano);
+      batch.delete(planoRef);
+
+      // 4) Commit em todas as operações (remover plano de usuários e do banco)
+      await batch.commit();
+      alert('Plano excluído com sucesso de todos os usuários!');
+    } catch (error) {
+      console.error('Erro ao excluir plano:', error);
+      alert('Erro ao excluir o plano, tente novamente mais tarde.');
     }
   }
 

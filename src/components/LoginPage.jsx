@@ -4,158 +4,141 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   sendPasswordResetEmail,
+  updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../config/firebaseConfig"; // Certifique-se de que o Firebase está corretamente configurado
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [mensagemErro, setMensagemErro] = useState("");
-  const [emailRecuperacao, setEmailRecuperacao] = useState("");
-  const [recuperacaoVisible, setRecuperacaoVisible] = useState(false); // Para controlar a visibilidade do formulário de recuperação
+  const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const auth = getAuth();
   const provedorGoogle = new GoogleAuthProvider();
 
+  async function ensureUserProfile(user) {
+    if (!user?.uid) return;
+    const ref = doc(db, "Usuarios", user.uid);
+    const snap = await getDoc(ref);
+    const base = {
+      email: user.email ?? null,
+      displayName: user.displayName ?? null,
+      photoURL: user.photoURL ?? null,
+      updatedAt: serverTimestamp(),
+    };
+    if (!snap.exists()) {
+      await setDoc(ref, { ...base, createdAt: serverTimestamp(), role: "user" });
+    } else {
+      await setDoc(ref, { ...snap.data(), ...base }, { merge: true });
+    }
+  }
+
+  // Processa resultado de redirect (fallback do Google)
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((usuario) => {
-      if (usuario) {
-        const documentoUsuario = doc(db, "Usuarios", usuario.uid);
-        getDoc(documentoUsuario).then((docSnapshot) => {
-          if (docSnapshot.exists()) {
-            usuario.getIdTokenResult(true).then((token) => {
-              if (token.claims.admin || docSnapshot.data().admin) {
-                navigate("/painel");
-              } else {
-                navigate("/");
-              }
-            });
-          } else {
-            auth.signOut();
-            setMensagemErro(
-              "Conta não encontrada. Por favor, faça um novo cadastro."
-            );
-          }
-        });
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          await ensureUserProfile(result.user);
+          const token = await result.user.getIdTokenResult(true);
+          const isAdmin = !!token.claims?.admin;
+          navigate(isAdmin ? "/painel" : "/", { replace: true });
+        }
+      } catch (e) {
+        // silencioso; usuário pode ter vindo sem redirect
+        console.error("Redirect login falhou:", e);
       }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), senha);
+      await ensureUserProfile(cred.user);
+      const token = await cred.user.getIdTokenResult(true);
+      const isAdmin = !!token.claims?.admin;
+      navigate(isAdmin ? "/painel" : "/", { replace: true });
+    } catch (error) {
+      console.error(error);
+      setErro("Falha no login. Verifique suas credenciais.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
+    setErro("");
+    setLoading(true);
     try {
-      const result = await signInWithPopup(auth, provedorGoogle);
-      const user = result.user;
-
-      const userRef = doc(db, "Usuarios", user.uid);
-      const userDoc = await getDoc(userRef);
-
-      if (!userDoc.exists()) {
-        await setDoc(userRef, {
-          uid: user.uid,
-          nome: user.displayName,
-          email: user.email,
-          foto: user.photoURL,
-          criadoEm: new Date(),
-        });
+      // tenta popup primeiro
+      const cred = await signInWithPopup(auth, provedorGoogle);
+      await ensureUserProfile(cred.user);
+      const token = await cred.user.getIdTokenResult(true);
+      const isAdmin = !!token.claims?.admin;
+      navigate(isAdmin ? "/painel" : "/", { replace: true });
+    } catch (err) {
+      console.warn("Popup falhou; tentando redirect...", err?.message);
+      try {
+        await signInWithRedirect(auth, provedorGoogle);
+        // fluxo continuará em getRedirectResult no useEffect
+      } catch (e2) {
+        console.error("Redirect também falhou:", e2);
+        setErro("Não foi possível concluir o login com o Google.");
       }
-
-      navigate("/painel");
-    } catch (error) {
-      console.error("Erro ao fazer login com o Google", error);
-      setMensagemErro("Erro ao tentar fazer login com o Google");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Função para login com e-mail e senha
-  const handleEmailLogin = async (evento) => {
-    evento.preventDefault();
-    setMensagemErro("");
-
-    if (!email || !senha) {
-      setMensagemErro("Preencha todos os campos.");
+  const handleRecuperarSenha = async () => {
+    setErro("");
+    if (!email) {
+      setErro("Informe o e-mail para recuperar a senha.");
       return;
     }
-
     try {
-      await signInWithEmailAndPassword(auth, email, senha);
-      navigate("/painel");
-    } catch (error) {
-      console.error("Erro no login:", error);
-      if (error.code === "auth/user-not-found") {
-        setMensagemErro("Usuário não encontrado.");
-      } else if (error.code === "auth/wrong-password") {
-        setMensagemErro("Senha incorreta.");
-      } else {
-        setMensagemErro("Falha no login. Tente novamente.");
-      }
+      await sendPasswordResetEmail(auth, email.trim());
+      alert("E-mail de redefinição enviado (verifique sua caixa de entrada).");
+    } catch (e) {
+      console.error(e);
+      setErro("Não foi possível enviar o e-mail de redefinição.");
     }
   };
 
-  const irParaCadastro = () => {
-    navigate("/cadastro");
-  };
-
-  // Função para exibir o formulário de recuperação de senha
-  const handleRecuperacaoSenha = () => {
-    setRecuperacaoVisible(true);
-  };
-
-  // Função para enviar o e-mail de recuperação de senha
-  const enviarEmailRecuperacao = async () => {
-    if (!emailRecuperacao) {
-      setMensagemErro("Por favor, insira seu e-mail.");
-      return;
-    }
-
-    try {
-      console.log("Enviando e-mail de recuperação para:", emailRecuperacao); // Log para verificar o e-mail
-      await sendPasswordResetEmail(auth, emailRecuperacao);
-      setMensagemErro(
-        "E-mail de recuperação enviado! Verifique sua caixa de entrada ou seu SPAM."
-      );
-      setRecuperacaoVisible(false); // Fecha o formulário após enviar o e-mail
-    } catch (error) {
-      console.error("Erro ao enviar e-mail de recuperação:", error);
-
-      // Tratamento de erros detalhados
-      if (error.code === "auth/invalid-email") {
-        setMensagemErro("O formato do e-mail é inválido.");
-      } else if (error.code === "auth/user-not-found") {
-        setMensagemErro("Não encontramos um usuário com esse e-mail.");
-      } else if (error.code === "auth/too-many-requests") {
-        setMensagemErro(
-          "Muitas tentativas de recuperação. Tente novamente mais tarde."
-        );
-      } else {
-        setMensagemErro(
-          "Erro ao enviar e-mail de recuperação. Tente novamente."
-        );
-      }
-    }
-  };
+  const irParaCadastro = () => navigate("/cadastro");
 
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
-      <div
-        className="card shadow-sm p-4"
-        style={{ maxWidth: "400px", width: "100%" }}
-      >
-        <div className="text-center mb-4">
+    <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "80vh" }}>
+      <div className="w-100" style={{ maxWidth: 420 }}>
+          <div className="text-center mb-4">
           <img
             src="../src/assets/logo.png"
             alt="Logo ControlM"
-            className="img-fluid mb-3"
-            style={{ maxHeight: "80px" }}
-          />
-          <h4 className="fw-bold">
-            Login - Control<span className="fs-1">M</span>
-          </h4>
+            className="img-fluid mb-1"
+            style={{ maxHeight: "100px" }}
+          />         
         </div>
+        <h3 className="mb-4 text-center">Entrar Control<span className="fs-1 fst-italic">M</span></h3>
+
+        {erro && (
+          <div className="alert alert-danger py-2 text-center" role="alert">
+            {erro}
+          </div>
+        )}
+
+       
+
         <form onSubmit={handleEmailLogin}>
           <div className="mb-3">
             <label className="form-label">E-mail</label>
@@ -163,8 +146,8 @@ function LoginPage() {
               type="email"
               className="form-control"
               value={email}
-              onChange={(evento) => setEmail(evento.target.value)}
-              placeholder="exemplo@gmail.com"
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="mb-3">
@@ -173,59 +156,32 @@ function LoginPage() {
               type="password"
               className="form-control"
               value={senha}
-              onChange={(evento) => setSenha(evento.target.value)}
-              placeholder="••••••••"
+              onChange={(e) => setSenha(e.target.value)}
+              required
             />
           </div>
-          {mensagemErro && (
-            <div className="alert alert-danger py-2 text-center" role="alert">
-              {mensagemErro}
-            </div>
-          )}
-          <button type="submit" className="btn btn-primary w-100 mb-2">
-            Entrar
-          </button>
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="btn btn-outline-danger w-100 mb-2"
-          >
-            Entrar com Google
-          </button>
+          
 
-          {/* Link para a recuperação de senha */}
-          <div className="text-center mt-3">
+          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
+           <button
+          type="button"
+          className="btn btn-outline-danger w-100 mt-2"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          {loading ? "Entrando..." : "Entrar com Google"}
+        </button>
+
+          <div className="d-flex justify-content-between mt-3">
             <button
-              onClick={handleRecuperacaoSenha}
-              className="btn btn-link p-0"
               type="button"
+              className="btn btn-link p-0"
+              onClick={handleRecuperarSenha}
             >
-              Esqueceu a senha?
+              Esqueci minha senha
             </button>
-          </div>
-
-          {/* Formulário para recuperação de senha */}
-          {recuperacaoVisible && (
-            <div className="mt-3">
-              <input
-                type="email"
-                className="form-control"
-                placeholder="Digite seu e-mail"
-                value={emailRecuperacao}
-                onChange={(e) => setEmailRecuperacao(e.target.value)}
-              />
-              <button
-                type="button"
-                className="btn btn-warning w-100 mt-2"
-                onClick={enviarEmailRecuperacao}
-              >
-                Enviar e-mail de recuperação
-              </button>
-            </div>
-          )}
-
-          <div className="text-center mt-3">
-            <span className="text-muted fs-6">Não tem conta? </span>
             <button
               onClick={irParaCadastro}
               className="btn btn-link p-0"
