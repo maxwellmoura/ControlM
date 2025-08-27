@@ -37,3 +37,6 @@ serviceAccount*.json
 dist
 node_modules
 *.zip
+# Variáveis de ambiente
+.env
+.env.*
