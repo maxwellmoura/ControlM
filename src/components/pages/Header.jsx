@@ -5,6 +5,7 @@ import { verificarAdmin } from '../../services/authService';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import logo from '../../src/assets/logo.png';
 
+
 function Header() {
   const [ehAdmin, setEhAdmin] = useState(false);
   const [estaLogado, setEstaLogado] = useState(false);

@@ -15,6 +15,7 @@ import { db } from "../config/firebaseConfig";
 import "bootstrap/dist/css/bootstrap.min.css";
 import logo from '../../src/assets/logo.png';
 
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -123,7 +124,9 @@ function LoginPage() {
     <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "80vh" }}>
       <div className="w-100" style={{ maxWidth: 420 }}>
           <div className="text-center mb-4">
+
          <img src={logo} alt="Logo" lt="ControlM" style={{ height: '110px' }}/>        
+
         </div>
         <h3 className="mb-4 text-center">Entrar Control<span className="fs-1 fst-italic">M</span></h3>
 
