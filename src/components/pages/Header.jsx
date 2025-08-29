@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import { verificarAdmin } from '../../services/authService';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import logo from '../src/assets/logo.png';
+import logo from '../../src/assets/logo.png';
 
 function Header() {
   const [ehAdmin, setEhAdmin] = useState(false);
