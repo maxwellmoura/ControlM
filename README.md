@@ -36,5 +36,3 @@ VITE_FIREBASE_VAPID_KEY=...
 - `src/services` — integrações com Firebase (auth, admin, planos)
 - `src/config` — inicialização do Firebase e scripts auxiliares
 
-## Observações
-- A única linha de comentário mantida no código é a instrução para trocar o número de WhatsApp do administrador em `src/components/EditarCadastro.jsx`.
