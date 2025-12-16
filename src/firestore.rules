@@ -1,32 +1,24 @@
-// firestore.rules
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Perfil do usuário: /Usuarios/{uid}
     match /Usuarios/{uid} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if isSignedIn() && request.auth.uid == uid;
-      // Usuário pode atualizar apenas seus próprios dados não sensíveis
       allow update: if isSignedIn() && request.auth.uid == uid && isSafeUserUpdate();
-      // Exclusão de usuários: somente admin
       allow delete: if isAdmin();
     }
 
-    // Planos: somente admin pode escrever; leitura aberta a autenticados
     match /Planos/{docId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    // Qualquer outra coleção sensível (ex.: pagamentos, feedback, etc.)
     match /Feedbacks/{docId} {
-      // usuário autenticado pode criar seu feedback; leitura apenas admin
       allow create: if isSignedIn();
       allow read, update, delete: if isAdmin();
     }
 
-    // Catch-all: negar
     match /{document=**} {
       allow read, write: if false;
     }
@@ -36,13 +28,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Confia exclusivamente em Custom Claims
       return isSignedIn() && request.auth.token.admin == true;
     }
 
-    // Restringe campos que um usuário comum pode alterar em seu próprio perfil
     function isSafeUserUpdate() {
-      // Não permitir elevação de privilégio ou alterações críticas
       return !('role' in request.resource.data)
              && !('admin' in request.resource.data)
              && !('claims' in request.resource.data);

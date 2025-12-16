@@ -6,7 +6,7 @@ const db = getFirestore();
 
 export default function FeedbackAdmin() {
   const [feedbacks, setFeedbacks] = useState([]);
-  const [filtro, setFiltro] = useState("pendentes"); // 'pendentes' | 'aprovados' | 'todos'
+  const [filtro, setFiltro] = useState("pendentes");
   const [erro, setErro] = useState("");
 
   useEffect(() => {
@@ -14,8 +14,6 @@ export default function FeedbackAdmin() {
     let q = collection(db, "Feedbacks");
     if (filtro === "pendentes") q = query(q, where("approved", "==", false));
     if (filtro === "aprovados") q = query(q, where("approved", "==", true));
-    // (Opcional) orderBy
-    // q = query(q, orderBy("createdAt", "desc"));
 
     const unsub = onSnapshot(
       q,

@@ -1,4 +1,3 @@
-// src/components/PainelAdm.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
@@ -19,13 +18,12 @@ import OverdueUsersModal from './OverdueUsersModal';
 import {
   calcularValorTotalPlanos,
   obterDataVencimentoMaisRecente,
-  verificarAdmin,          // mantém o verificador que você já usa no projeto
+  verificarAdmin,
   contarAdeptosPlano,
 } from '../services/adminService';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Firestore (tempo real e operações)
 import {
   collection,
   onSnapshot,
@@ -54,7 +52,6 @@ function PainelAdm() {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // guardamos unsubscribers para limpar listeners
   const unsubUsuariosRef = useRef(null);
   const unsubPlanosRef = useRef(null);
 
@@ -68,7 +65,6 @@ function PainelAdm() {
 
         const user = auth.currentUser;
 
-        // Não logado -> manda para login
         if (!user) {
           setCarregando(false);
           setErro('Você precisa estar logado para acessar o painel.');
@@ -76,14 +72,11 @@ function PainelAdm() {
           return;
         }
 
-        // força refresh de token para garantir claims atualizadas
         try {
           await user.getIdToken(true);
         } catch {
-          // mesmo que falhe o refresh, seguimos tentando verificar
         }
 
-        // compatibilidade: verificarAdmin pode retornar boolean OU objeto {isAdmin, error}
         let isAdmin = false;
         let vResult;
         try {
@@ -105,14 +98,11 @@ function PainelAdm() {
           setCarregando(false);
           if (!cancelado) {
             setErro((prev) => prev || 'Acesso negado: esta área é restrita a administradores.');
-            // se não é admin, redireciona para a home
             navigate('/', { replace: true });
           }
           return;
         }
 
-        // Somente admins chegam aqui -> iniciamos listeners
-        // Usuarios (ordenado opcionalmente por createdAt/updatedAt se existirem)
         const qUsuarios = query(collection(db, 'Usuarios'), orderBy('createdAt', 'desc'));
         unsubUsuariosRef.current = onSnapshot(
           qUsuarios,
@@ -125,7 +115,7 @@ function PainelAdm() {
                 nome: data.nome || data.displayName || 'Sem nome',
                 email: data.email || 'N/A',
                 planos: Array.isArray(data.planos) ? data.planos : [],
-                ehAdmin: !!data.admin, // apenas decorativo; permissão real é claim no token
+                ehAdmin: !!data.admin,
                 telefone: data.telefone || '',
                 criadoEm: data.createdAt || data.criadoEm || null,
                 updatedAt: data.updatedAt || null,
@@ -140,7 +130,6 @@ function PainelAdm() {
             if (cancelado) return;
             setErro('Não foi possível carregar usuários. Verifique suas permissões.');
             setCarregando(false);
-            // Em caso de permissão negada, fechamos o listener por segurança
             if (unsubUsuariosRef.current) {
               unsubUsuariosRef.current();
               unsubUsuariosRef.current = null;
@@ -148,7 +137,6 @@ function PainelAdm() {
           }
         );
 
-        // Planos
         const qPlanos = query(collection(db, 'Planos'), orderBy('text', 'asc'));
         unsubPlanosRef.current = onSnapshot(
           qPlanos,
@@ -168,7 +156,6 @@ function PainelAdm() {
             console.error('Erro (onSnapshot Planos):', err);
             if (cancelado) return;
             setErro('Não foi possível carregar planos. Verifique suas permissões.');
-            // Se der permissão negada, encerra listener
             if (unsubPlanosRef.current) {
               unsubPlanosRef.current();
               unsubPlanosRef.current = null;
@@ -199,14 +186,11 @@ function PainelAdm() {
     };
   }, [navigate, auth]);
 
-  // Recalcula adeptosPorPlano sempre que usuarios/planos mudarem
   useEffect(() => {
-    // nomePlano -> array de { id, nome, email, telefone, adesoes }
     const mapa = {};
 
     usuarios.forEach((u) => {
       const arr = Array.isArray(u.planos) ? u.planos : [];
-      // conta quantas adesões do mesmo plano o usuário tem
       const counts = new Map();
       arr.forEach((p) => {
         if (!p?.nome) return;
@@ -273,7 +257,6 @@ function PainelAdm() {
     setMostrarAdeptosPlano(planoNome);
   }
 
-  // As operações de CRUD de Planos ficam sob as regras do Firestore (admin)
   async function handleSalvarPlano(dados) {
     try {
       if (editandoPlano) {
@@ -298,7 +281,6 @@ function PainelAdm() {
     if (!window.confirm('Tem certeza que deseja excluir este plano?')) return;
     try {
       await deleteDoc(doc(db, 'Planos', id));
-      // onSnapshot fará o restante
     } catch (error) {
       console.error('Erro ao excluir plano:', error);
       setErro('Erro ao excluir plano.');
@@ -320,7 +302,7 @@ function PainelAdm() {
 
       {!carregando && !erro && (
         <>
-          <h4>Usuários</h4>
+          <h4>Alunos</h4>
           <Button onClick={gerarRelatorioPDF} className="me-2">Gerar Relatório PDF</Button>
           <Button onClick={() => setMostrarCashFlow(true)} className="me-2">Ver Fluxo de Caixa</Button>
           <Button onClick={() => setMostrarOverdueUsers(true)}>Ver Inadimplentes</Button>

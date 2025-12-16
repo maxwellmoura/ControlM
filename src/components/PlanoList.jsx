@@ -24,10 +24,8 @@ export default function PlanosList() {
     navigate('/');
   };
 
-  // Carrega Planos + Usuarios (uma vez cada) e calcula total de adesões por plano
   const carregarPlanos = async () => {
     try {
-      // 1) Lê Planos
       const planosSnap = await getDocs(collection(db, 'Planos'));
       const planosBase = planosSnap.docs.map((d) => ({
         id: d.id,
@@ -35,9 +33,8 @@ export default function PlanosList() {
         value: Number(d.data().value) || 0,
       }));
 
-      // 2) Lê Usuarios
       const usuariosSnap = await getDocs(collection(db, 'Usuarios'));
-      const countPorPlano = new Map(); // nomePlano -> contagem
+      const countPorPlano = new Map();
 
       usuariosSnap.forEach((docu) => {
         const arr = Array.isArray(docu.data().planos) ? docu.data().planos : [];
@@ -47,7 +44,6 @@ export default function PlanosList() {
         });
       });
 
-      // 3) Junta as informações
       const planosComContagem = planosBase.map((p) => ({
         ...p,
         totalAdesoes: countPorPlano.get(p.text) || 0,
@@ -84,7 +80,7 @@ export default function PlanosList() {
   const abrirModalUsuarios = async (plano) => {
     try {
       const usuarios = await obterUsuariosPorPlano(plano.text);
-      setUsuariosPlano(usuarios); // já vem com fotoUrl do serviço
+      setUsuariosPlano(usuarios);
       setPlanoSelecionado(plano);
     } catch (error) {
       console.error('Erro ao carregar usuários do plano:', error);

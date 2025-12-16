@@ -12,7 +12,7 @@ const Dashboard = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [userName, setUserName] = useState("");
   const [isLogged, setIsLogged] = useState(false);
-  const [completedPlan] = useState(true); // mantenho true pra sempre renderizar a área
+  const [completedPlan] = useState(true);
 
   useEffect(() => {
     const auth = getAuth();
@@ -31,10 +31,8 @@ const Dashboard = () => {
     try {
       let q;
       if (user) {
-        // ✅ logado: somente os meus feedbacks (aprovados ou não)
         q = query(collection(db, "Feedbacks"), where("userId", "==", user.uid));
       } else {
-        // ✅ não logado: somente feedbacks aprovados (de todos os usuários)
         q = query(collection(db, "Feedbacks"), where("approved", "==", true));
       }
 

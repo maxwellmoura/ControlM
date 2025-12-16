@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import { verificarAdmin } from '../../services/authService';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import logo from '../../src/assets/logo.png';
+import logo from '../../assets/logo.png';
 
 
 function Header() {
@@ -12,7 +12,6 @@ function Header() {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // Verifica se o usuário está logado e se é administrador
   useEffect(function verificarUsuario() {
     const unsubscribe = auth.onAuthStateChanged(function(usuario) {
       if (usuario) {
@@ -30,10 +29,8 @@ function Header() {
     };
   }, [auth]);
 
-  // Função para sair
   function sair() {
     signOut(auth).then(() => {
-      // Redireciona para a página inicial (Landing Page) após logout
       navigate('/', { replace: true });
     }).catch((error) => {
       console.error("Erro ao sair:", error);

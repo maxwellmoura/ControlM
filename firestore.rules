@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Usuarios collection (perfil do usuário)
+    match /Usuarios/{userId} {
+      // Usuário pode ler/atualizar o próprio perfil; admin pode tudo
+      allow read, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin(); // exclusões somente para admin
+
+      // Criação: apenas usuários autenticados criando o próprio doc
+      allow create: if isOwner(userId);
+
+      // Subcoleções de usuários (ex.: Planos)
+      match /{sub=**}/{docId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Planos collection (catálogo de planos)
+    match /Planos/{planoId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Feedbacks (exemplo: vincular feedback ao usuário)
+    match /Feedbacks/{feedbackId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // Fallback: negar tudo que não foi explicitamente permitido
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

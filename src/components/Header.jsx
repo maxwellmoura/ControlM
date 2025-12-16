@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import { verificarAdmin } from '../services/authService';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import logo from '../assets/logo.png';
 
 function Header() {
   const [ehAdmin, setEhAdmin] = useState(false);
@@ -10,7 +11,6 @@ function Header() {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // Verifica se o usuário está logado e se é administrador
   useEffect(function verificarUsuario() {
     const unsubscribe = auth.onAuthStateChanged(function(usuario) {
       if (usuario) {
@@ -28,7 +28,6 @@ function Header() {
     };
   }, [auth]);
 
-  // Função para sair
   function sair() {
     signOut(auth).then(function() {
       navigate('/inicio');
@@ -39,7 +38,7 @@ function Header() {
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container">
         <Link className="navbar-brand" to="/">
-          <img src="../src/assets/logo.png" alt="ControlM" style={{ height: '110px' }} />
+          <img src={logo} alt="ControlM" style={{ height: '110px' }} />
         </Link>
         <button
           className="navbar-toggler"

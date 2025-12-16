@@ -1,10 +1,8 @@
 import { db } from '../config/firebaseConfig';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 
-// Coleção para armazenar planos
 const colecaoPlanos = collection(db, 'Planos');
 
-// Obtém todos os planos
 function obterPlanos() {
   return getDocs(colecaoPlanos)
     .then(snapshot => snapshot.docs.map(doc => ({
@@ -18,7 +16,6 @@ function obterPlanos() {
     });
 }
 
-// Adiciona um novo plano
 function adicionarPlano(dados) {
   if (!dados.text || !dados.value) {
     console.error('Nome e valor do plano são obrigatórios:', dados);
@@ -33,7 +30,6 @@ function adicionarPlano(dados) {
   });
 }
 
-// Atualiza um plano existente
 function atualizarPlano(id, dados) {
   if (!id || !dados.text || !dados.value) {
     console.error('ID, nome e valor do plano são obrigatórios:', id, dados);
@@ -48,7 +44,6 @@ function atualizarPlano(id, dados) {
   });
 }
 
-// Exclui um plano
 function excluirPlano(id) {
   if (!id) {
     console.error('ID do plano é obrigatório:', id);
@@ -61,7 +56,6 @@ function excluirPlano(id) {
     });
 }
 
-// Define um plano com ID específico
 function setPlansAcess(dados) {
   if (!dados.text || !dados.value) {
     console.error('Nome e valor do plano são obrigatórios:', dados);
@@ -76,7 +70,6 @@ function setPlansAcess(dados) {
   });
 }
 
-// Obtém usuários que aderiram a um plano específico
 async function obterUsuariosPorPlano(nomePlano) {
   if (!nomePlano) {
     console.error('Nome do plano é obrigatório:', nomePlano);

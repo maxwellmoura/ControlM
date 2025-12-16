@@ -89,7 +89,7 @@ export default function EditarCadastro() {
       setErro('Plano inválido para solicitação de extensão.');
       return;
     }
-    const numeroWhatsApp = '+5511999999999'; // Substitua pelo número real do administrador
+    const numeroWhatsApp = '+5588999760102'; // Substitua pelo número real do administrador
     const mensagem = `Olá, gostaria de solicitar a extensão do plano "${plano.nome}". Data de expiração atual: ${formatarDataParaExibicao(plano.dataExpiracao)}. Nome: ${nome}, Email: ${email}.`;
     const mensagemEncoded = encodeURIComponent(mensagem);
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`;

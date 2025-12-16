@@ -1,10 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
-import jiuKids from '../../src/assets/esportes/jiujitsu-kids.jpg';
-import jiuAdulto from '../../src/assets/esportes/jiujitsu-adulto.jpg';
-import jiuBaby from '../../src/assets/esportes/jiujitsu-baby.jpg';
-import kickboxer from '../../src/assets/esportes/kickboxer.jpeg';
-import nogi from '../../src/assets/esportes/nogi.jpeg';
+import jiuKids from '../assets/esportes/jiujitsu-kids.jpg';
+import jiuAdulto from '../assets/esportes/jiujitsu-adulto.jpg';
+import jiuBaby from '../assets/esportes/jiujitsu-baby.jpg';
+import kickboxer from '../assets/esportes/kickboxer.jpeg';
+import nogi from '../assets/esportes/nogi.jpeg';
 import capoeira from '../assets/esportes/capoeiraadulto.jpeg';
 import capoeirakids from '../assets/esportes/capoeirakids.jpeg';
 import { useState } from 'react';

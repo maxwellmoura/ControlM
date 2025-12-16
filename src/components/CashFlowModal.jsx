@@ -15,7 +15,6 @@ import {
   Legend,
 } from 'chart.js';
 
-// PDF
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -33,14 +32,12 @@ function CashFlowModal({ show, onHide }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // parse seguro p/ evitar timezone
   const parseYMD = (str) => {
     if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return null;
     const [y, m, d] = str.split('-').map(Number);
     return new Date(y, m - 1, d);
   };
 
-  // verifica sobreposição entre [a1,b1] e [a2,b2]
   const overlaps = (a1, b1, a2, b2) => a1 <= b2 && b1 >= a2;
 
   useEffect(() => {
@@ -59,9 +56,8 @@ function CashFlowModal({ show, onHide }) {
         curStart.setHours(0,0,0,0);
         curEnd.setHours(0,0,0,0);
 
-        // últimos 6 meses (labels + intervalos)
         const monthWindows = Array.from({ length: 6 }, (_, i) => {
-          const idx = 5 - i; // 0 = mais antigo
+          const idx = 5 - i;
           const start = new Date(today.getFullYear(), today.getMonth() - idx, 1);
           const end = new Date(today.getFullYear(), today.getMonth() - idx + 1, 0);
           start.setHours(0,0,0,0);
@@ -71,7 +67,6 @@ function CashFlowModal({ show, onHide }) {
         });
         const revenueByMonth = Array(6).fill(0);
 
-        // planos (nome -> preço atual)
         const planosSnapshot = await getDocs(collection(db, 'Planos'));
         const planosMap = new Map();
         planosSnapshot.forEach(doc => {
@@ -79,7 +74,6 @@ function CashFlowModal({ show, onHide }) {
           planosMap.set(d.text, Number(d.value) || 0);
         });
 
-        // usuários e seus planos
         const usuariosSnapshot = await getDocs(collection(db, 'Usuarios'));
 
         let totalRevenue = 0;
@@ -101,17 +95,13 @@ function CashFlowModal({ show, onHide }) {
 
             const price = Number(plano.precoNaAdesao ?? planosMap.get(plano.nome) ?? 0);
 
-            // Receita do mês atual: conta se o período do plano sobrepõe o mês atual
             if (overlaps(adesaoDate, expiracaoDate, curStart, curEnd)) {
               totalRevenue += price;
               revenueByPlanMap[plano.nome] = (revenueByPlanMap[plano.nome] || 0) + price;
             }
 
-            // Expirados (até hoje)
             if (expiracaoDate < today) expiredPlans++;
 
-            // Novas assinaturas x renovações (heurística simples):
-            // se adesão é neste mês e já havia adesão anterior do mesmo plano, consideramos renovação
             const adesaoInCurMonth =
               adesaoDate.getMonth() === curStart.getMonth() &&
               adesaoDate.getFullYear() === curStart.getFullYear();
@@ -126,7 +116,6 @@ function CashFlowModal({ show, onHide }) {
               else newSubscriptions++;
             }
 
-            // Tendência: soma preço em cada mês que tenha sobreposição
             monthWindows.forEach((mw, idx) => {
               if (overlaps(adesaoDate, expiracaoDate, mw.start, mw.end)) {
                 revenueByMonth[idx] += price;
@@ -154,7 +143,6 @@ function CashFlowModal({ show, onHide }) {
     fetchCashFlowData();
   }, [show]);
 
-  // ---- PDF ----
   const moeda = (n) => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   function gerarRelatorioFinanceiroPDF() {
     const doc = new jsPDF();
@@ -165,7 +153,6 @@ function CashFlowModal({ show, onHide }) {
     doc.setFontSize(10);
     doc.text(`Gerado em: ${hojeBR}`, 14, 22);
 
-    // 1) Métricas do mês
     autoTable(doc, {
       startY: 28,
       head: [['Métrica', 'Valor']],
@@ -179,7 +166,6 @@ function CashFlowModal({ show, onHide }) {
 
     let y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : 28;
 
-    // 2) Receita por Plano
     const receitaPorPlano = Object.entries(revenueByPlan || {});
     if (receitaPorPlano.length > 0) {
       autoTable(doc, {
@@ -190,7 +176,6 @@ function CashFlowModal({ show, onHide }) {
       y = doc.lastAutoTable.finalY + 8;
     }
 
-    // 3) Tendência (últimos 6 meses)
     const labels6m = Array.from({ length: 6 }, (_, i) => {
       const d = new Date();
       d.setMonth(d.getMonth() - (5 - i));

@@ -35,12 +35,12 @@ const FeedbackForm = ({ planId }) => {
     try {
       await addDoc(collection(db, "Feedbacks"), {
         userId: user.uid,
-        userName,  // Atualiza o nome do usuário ao enviar feedback
+        userName,
         planId: planId || null,
         rating: Number(rating),
         comments: comments.trim(),
-        approved: false,               // ✅ entra pendente
-        createdAt: serverTimestamp(),  // ✅ usa server time
+        approved: false,
+        createdAt: serverTimestamp(),
       });
 
       setSuccessMessage("Feedback enviado com sucesso! Aguarde aprovação.");

@@ -1,11 +1,3 @@
-// src/services/authService.js
-// ------------------------------------------------------------
-// Serviço de Autenticação e Autorização (Firebase v9+ modular)
-// - Valida inputs (email/senha) no cliente
-// - Cria/atualiza perfil básico em /Usuarios/{uid}
-// - Verifica claims de admin com refresh do token
-// - Evita erros de COOP com fallback para signInWithRedirect
-// ------------------------------------------------------------
 
 import {
   getAuth,
@@ -30,7 +22,6 @@ import {
 
 import { db } from '../config/firebaseConfig';
 
-// ---------------------- Helpers de validação ----------------------
 function validateEmail(email) {
   if (typeof email !== 'string') return false;
   const re = /\S+@\S+\.\S+/;
@@ -47,10 +38,8 @@ function sanitizeString(s) {
   return s.trim();
 }
 
-// ----------------------------- Auth ------------------------------
 const auth = getAuth();
 
-// ----------------- Perfil /Usuarios/{uid} no Firestore -----------
 export async function ensureUserProfile(user) {
   if (!user?.uid) return;
 
@@ -68,14 +57,13 @@ export async function ensureUserProfile(user) {
     await setDoc(ref, {
       ...base,
       createdAt: serverTimestamp(),
-      role: 'user', // Nunca elevar papel no cliente
+      role: 'user',
     });
   } else {
     await updateDoc(ref, base);
   }
 }
 
-// ------------------------- Sign Up -------------------------------
 export async function signUpWithEmail({ email, password, displayName }) {
   const cleanEmail = sanitizeString(email);
   const cleanName = sanitizeString(displayName ?? '');
@@ -90,11 +78,10 @@ export async function signUpWithEmail({ email, password, displayName }) {
   }
 
   await ensureUserProfile(cred.user);
-  await cred.user.getIdToken(true); // garantir claims atualizadas
+  await cred.user.getIdToken(true);
   return cred.user;
 }
 
-// -------------------------- Sign In ------------------------------
 export async function signInWithEmail({ email, password }) {
   const cleanEmail = sanitizeString(email);
 
@@ -107,22 +94,17 @@ export async function signInWithEmail({ email, password }) {
   return cred.user;
 }
 
-// -------- Login com Google (Popup com fallback Redirect) ---------
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
 
   try {
-    // Tenta popup primeiro
     const cred = await signInWithPopup(auth, provider);
     await ensureUserProfile(cred.user);
     await cred.user.getIdToken(true);
     return cred.user;
   } catch (err) {
-    // Alguns navegadores/políticas COOP bloqueiam window.close/closed
-    // Fallback para redirect elimina os warnings e garante login
     if (err && typeof window !== 'undefined') {
       await signInWithRedirect(auth, provider);
-      // Após redirecionar e voltar, pegar o resultado:
       const redirectCred = await getRedirectResult(auth);
       if (redirectCred?.user) {
         await ensureUserProfile(redirectCred.user);
@@ -134,12 +116,10 @@ export async function signInWithGoogle() {
   }
 }
 
-// --------------------------- Logout ------------------------------
 export async function logout() {
   await signOut(auth);
 }
 
-// ------------------------ User helpers ---------------------------
 export function currentUser() {
   return auth.currentUser;
 }
@@ -148,12 +128,10 @@ export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-// --------------------- Verificação de Admin ----------------------
 export async function verificarAdmin() {
   const user = auth.currentUser;
   if (!user) return false;
 
-  // Forçar refresh para garantir claims atualizadas
   const token = await user.getIdTokenResult(true);
   return token.claims?.admin === true;
 }
@@ -167,7 +145,6 @@ export async function requireAdmin() {
   }
 }
 
-// (Opcional) Força refresh manual do token
 export async function refreshIdToken() {
   if (auth.currentUser) {
     await auth.currentUser.getIdToken(true);
