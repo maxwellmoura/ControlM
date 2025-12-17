@@ -104,11 +104,27 @@ function PainelAdm() {
           return;
         }
 
-        const qUsuarios = query(collection(db, 'Usuarios'), orderBy('createdAt', 'desc'));
+        let qUsuarios;
+        try {
+          qUsuarios = query(collection(db, 'Usuarios'), orderBy('createdAt', 'desc'));
+        } catch (e) {
+          console.warn('orderBy(createdAt) falhou — usando consulta sem ordenacao', e);
+          qUsuarios = collection(db, 'Usuarios');
+        }
+
         unsubUsuariosRef.current = onSnapshot(
           qUsuarios,
           (snap) => {
             if (cancelado) return;
+            try {
+              // log ids to help debugging missing users
+              console.log(
+                'Usuarios snapshot ids:',
+                snap.docs.map((d) => d.id)
+              );
+            } catch (logErr) {
+              /* ignore logging errors */
+            }
             const lista = snap.docs.map((d) => {
               const data = d.data() || {};
               return {
