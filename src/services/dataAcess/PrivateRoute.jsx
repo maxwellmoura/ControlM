@@ -11,30 +11,33 @@ function PrivateRoute(props) {
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(function verificarUsuario() {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, function(usuario) {
-      if (usuario) {
-        verificarAdmin().then(function(statusAdmin) {
-          setEhAdmin(statusAdmin);
-          if (!statusAdmin) {
-            setMostrarAlerta(true);
-            setTimeout(function() {
-              navigate('/');
-              setMostrarAlerta(false);
-            }, 3000);
-          }
-        });
-      } else {
-        setEhAdmin(false);
-        navigate('/inicio');
-      }
-    });
+  useEffect(
+    function verificarUsuario() {
+      const auth = getAuth();
+      const unsubscribe = onAuthStateChanged(auth, function (usuario) {
+        if (usuario) {
+          verificarAdmin().then(function (statusAdmin) {
+            setEhAdmin(statusAdmin);
+            if (!statusAdmin) {
+              setMostrarAlerta(true);
+              setTimeout(function () {
+                navigate('/');
+                setMostrarAlerta(false);
+              }, 3000);
+            }
+          });
+        } else {
+          setEhAdmin(false);
+          navigate('/inicio');
+        }
+      });
 
-    return function limpar() {
-      unsubscribe();
-    };
-  }, [navigate]);
+      return function limpar() {
+        unsubscribe();
+      };
+    },
+    [navigate]
+  );
 
   if (ehAdmin === null) {
     return <div className="container mt-5 text-center">Carregando...</div>;
@@ -46,7 +49,9 @@ function PrivateRoute(props) {
         <Alert
           variant="warning"
           className="text-center"
-          onClose={function() { setMostrarAlerta(false); }}
+          onClose={function () {
+            setMostrarAlerta(false);
+          }}
           dismissible
         >
           Essa área só pode ser acessada por um administrador.

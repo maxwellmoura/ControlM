@@ -11,25 +11,28 @@ function Header() {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  useEffect(function verificarUsuario() {
-    const unsubscribe = auth.onAuthStateChanged(function(usuario) {
-      if (usuario) {
-        setEstaLogado(true);
-        verificarAdmin().then(function(status) {
-          setEhAdmin(status);
-        });
-      } else {
-        setEstaLogado(false);
-        setEhAdmin(false);
-      }
-    });
-    return function limpar() {
-      unsubscribe();
-    };
-  }, [auth]);
+  useEffect(
+    function verificarUsuario() {
+      const unsubscribe = auth.onAuthStateChanged(function (usuario) {
+        if (usuario) {
+          setEstaLogado(true);
+          verificarAdmin().then(function (status) {
+            setEhAdmin(status);
+          });
+        } else {
+          setEstaLogado(false);
+          setEhAdmin(false);
+        }
+      });
+      return function limpar() {
+        unsubscribe();
+      };
+    },
+    [auth]
+  );
 
   function sair() {
-    signOut(auth).then(function() {
+    signOut(auth).then(function () {
       navigate('/inicio');
     });
   }

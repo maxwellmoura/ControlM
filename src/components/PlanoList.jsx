@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  getPlansAcess,
   addPlansAcess,
   updatePlansAcess,
   deletePlansAcess,
-  obterUsuariosPorPlano
+  obterUsuariosPorPlano,
 } from '../services/plansAcess';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
@@ -131,9 +130,7 @@ export default function PlanosList() {
                 style={{ cursor: plano.totalAdesoes > 0 ? 'pointer' : 'default' }}
                 onClick={plano.totalAdesoes > 0 ? () => abrirModalUsuarios(plano) : undefined}
               >
-                {plano.totalAdesoes > 0
-                  ? `${plano.totalAdesoes} adesão(ões)`
-                  : 'Nenhuma adesão'}
+                {plano.totalAdesoes > 0 ? `${plano.totalAdesoes} adesão(ões)` : 'Nenhuma adesão'}
               </td>
               <td>
                 <Button
@@ -144,11 +141,7 @@ export default function PlanosList() {
                 >
                   Editar
                 </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => excluirPlano(plano.id)}
-                >
+                <Button variant="danger" size="sm" onClick={() => excluirPlano(plano.id)}>
                   Excluir
                 </Button>
               </td>
@@ -206,9 +199,7 @@ export default function PlanosList() {
               </tbody>
             </Table>
           ) : (
-            <p className="text-center text-muted">
-              Nenhum usuário aderiu a este plano.
-            </p>
+            <p className="text-center text-muted">Nenhum usuário aderiu a este plano.</p>
           )}
         </Modal.Body>
         <Modal.Footer>

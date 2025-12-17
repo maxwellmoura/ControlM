@@ -5,13 +5,13 @@ import Footer from '../components/pages/Footer';
 import Dashboard from './pages/Dashboard';
 
 export default function LandingPage() {
-    return (
-        <>
-            <Header />
-            <EsportesSection />
-            <PlanosSection />
-            <Dashboard />
-            <Footer />
-        </>
-    );
+  return (
+    <>
+      <Header />
+      <EsportesSection />
+      <PlanosSection />
+      <Dashboard />
+      <Footer />
+    </>
+  );
 }

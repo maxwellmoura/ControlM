@@ -8,10 +8,7 @@ export default function Pagamento() {
     <div className="container mt-5">
       <h2 className="text-center mb-4">Pagamento</h2>
       <p className="text-center">Funcionalidade de pagamento em desenvolvimento.</p>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate('/')}
-      >
+      <button className="btn btn-secondary" onClick={() => navigate('/')}>
         Voltar
       </button>
     </div>

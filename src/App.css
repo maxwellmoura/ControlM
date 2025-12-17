@@ -1,49 +1,49 @@
- @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
- .esporte-card {
-   transition: transform 0.3s ease;
- }
+.esporte-card {
+  transition: transform 0.3s ease;
+}
 
- .esporte-card:hover {
-   transform: scale(1.05);
- }
+.esporte-card:hover {
+  transform: scale(1.05);
+}
 
- .modal-img {
-   max-height: 500px;
-   object-fit: cover;
- }
+.modal-img {
+  max-height: 500px;
+  object-fit: cover;
+}
 
- .esporte-card img {
-   object-fit: cover;
-   height: 200px;
- }
+.esporte-card img {
+  object-fit: cover;
+  height: 200px;
+}
 
- .esporte-card .card-body {
-   text-align: center;
- }
+.esporte-card .card-body {
+  text-align: center;
+}
 
- .logo-img {
-   width: 60px;
-   height: auto;
-   filter: invert(100%);
- }
+.logo-img {
+  width: 60px;
+  height: auto;
+  filter: invert(100%);
+}
 
- .mb-1 {
-   font-size: 17px;
- }
+.mb-1 {
+  font-size: 17px;
+}
 
- span {
-   font-size: 185x;
-   font-family: Roboto, sans-serif;
-   font-weight: bold;
-   color: rgb(72, 72, 247);
- }
+span {
+  font-size: 185x;
+  font-family: Roboto, sans-serif;
+  font-weight: bold;
+  color: rgb(72, 72, 247);
+}
 
- .mb-0 {
-   font-size: 15px;
- }
+.mb-0 {
+  font-size: 15px;
+}
 
- .feedback-card {
+.feedback-card {
   background-color: #f8f9fa;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -53,12 +53,11 @@
 }
 
 .feedback-card:hover {
-  transform: scale(1.05);  /* Efeito de hover para dar uma leve animação */
+  transform: scale(1.05); /* Efeito de hover para dar uma leve animação */
 }
 
-
- @media (max-width: 576px) {
-   .esporte-card img {
-     height: 150px;
-   }
- }
+@media (max-width: 576px) {
+  .esporte-card img {
+    height: 150px;
+  }
+}

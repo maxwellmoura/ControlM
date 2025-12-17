@@ -104,7 +104,9 @@ function calcularValorTotalPlanos(planosUsuario, planos) {
     const encontrado = planos.find((p) => p.text === (plano?.nome || ''));
     if (encontrado) total += Number(encontrado.value || 0);
   }
-  console.log(`Valor total calculado para planos ${JSON.stringify(planosUsuario)}: R$ ${total.toFixed(2)}`);
+  console.log(
+    `Valor total calculado para planos ${JSON.stringify(planosUsuario)}: R$ ${total.toFixed(2)}`
+  );
   return 'R$ ' + total.toFixed(2).replace('.', ',');
 }
 
@@ -141,7 +143,14 @@ function obterDataVencimentoMaisRecente(planosUsuario) {
   } else {
     classe = 'bg-danger bg-opacity-25';
   }
-  console.log('Data de vencimento mais recente:', dataMaisRecente, 'Classe:', classe, 'Dias:', diasAteVencimento);
+  console.log(
+    'Data de vencimento mais recente:',
+    dataMaisRecente,
+    'Classe:',
+    classe,
+    'Dias:',
+    diasAteVencimento
+  );
   return { texto: formatarDataParaExibicao(dataMaisRecente), classe };
 }
 

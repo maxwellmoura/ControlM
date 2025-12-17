@@ -5,12 +5,14 @@ const colecaoPlanos = collection(db, 'Planos');
 
 function obterPlanos() {
   return getDocs(colecaoPlanos)
-    .then(snapshot => snapshot.docs.map(doc => ({
-      id: doc.id,
-      text: doc.data().text || 'Plano sem nome',
-      value: Number(doc.data().value) || 0,
-    })))
-    .catch(error => {
+    .then((snapshot) =>
+      snapshot.docs.map((doc) => ({
+        id: doc.id,
+        text: doc.data().text || 'Plano sem nome',
+        value: Number(doc.data().value) || 0,
+      }))
+    )
+    .catch((error) => {
       console.error('Erro ao obter planos:', error);
       throw error;
     });
@@ -24,7 +26,7 @@ function adicionarPlano(dados) {
   return addDoc(colecaoPlanos, {
     text: dados.text,
     value: Number(dados.value),
-  }).catch(error => {
+  }).catch((error) => {
     console.error('Erro ao adicionar plano:', error);
     throw error;
   });
@@ -38,7 +40,7 @@ function atualizarPlano(id, dados) {
   return updateDoc(doc(db, 'Planos', id), {
     text: dados.text,
     value: Number(dados.value),
-  }).catch(error => {
+  }).catch((error) => {
     console.error('Erro ao atualizar plano:', error);
     throw error;
   });
@@ -49,11 +51,10 @@ function excluirPlano(id) {
     console.error('ID do plano é obrigatório:', id);
     throw new Error('ID do plano é obrigatório.');
   }
-  return deleteDoc(doc(db, 'Planos', id))
-    .catch(error => {
-      console.error('Erro ao excluir plano:', error);
-      throw error;
-    });
+  return deleteDoc(doc(db, 'Planos', id)).catch((error) => {
+    console.error('Erro ao excluir plano:', error);
+    throw error;
+  });
 }
 
 function setPlansAcess(dados) {
@@ -64,7 +65,7 @@ function setPlansAcess(dados) {
   return setDoc(doc(db, 'Planos'), {
     text: dados.text,
     value: Number(dados.value),
-  }).catch(error => {
+  }).catch((error) => {
     console.error('Erro ao definir plano:', error);
     throw error;
   });
@@ -79,10 +80,10 @@ async function obterUsuariosPorPlano(nomePlano) {
     const usuariosRef = collection(db, 'Usuarios');
     const snapshot = await getDocs(usuariosRef);
     const usuarios = [];
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc) => {
       const data = doc.data();
       const planos = Array.isArray(data.planos) ? data.planos : [];
-      const adesoes = planos.filter(plano => plano?.nome === nomePlano);
+      const adesoes = planos.filter((plano) => plano?.nome === nomePlano);
       if (adesoes.length > 0) {
         usuarios.push({
           id: doc.id,
@@ -101,4 +102,11 @@ async function obterUsuariosPorPlano(nomePlano) {
   }
 }
 
-export { adicionarPlano as addPlansAcess, obterPlanos as getPlansAcess, atualizarPlano as updatePlansAcess, excluirPlano as deletePlansAcess, setPlansAcess, obterUsuariosPorPlano };
+export {
+  adicionarPlano as addPlansAcess,
+  obterPlanos as getPlansAcess,
+  atualizarPlano as updatePlansAcess,
+  excluirPlano as deletePlansAcess,
+  setPlansAcess,
+  obterUsuariosPorPlano,
+};

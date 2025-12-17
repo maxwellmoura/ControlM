@@ -74,7 +74,8 @@ function PainelAdm() {
 
         try {
           await user.getIdToken(true);
-        } catch {
+        } catch (e) {
+          console.warn('Falha ao atualizar token:', e);
         }
 
         let isAdmin = false;
@@ -292,19 +293,19 @@ function PainelAdm() {
       <Header />
       <h2 className="text-center mb-4">Painel Administrativo</h2>
 
-      {carregando && (
-        <div className="alert alert-info py-2 text-center">Carregando...</div>
-      )}
+      {carregando && <div className="alert alert-info py-2 text-center">Carregando...</div>}
 
-      {!carregando && erro && (
-        <div className="alert alert-danger py-2 text-center">{erro}</div>
-      )}
+      {!carregando && erro && <div className="alert alert-danger py-2 text-center">{erro}</div>}
 
       {!carregando && !erro && (
         <>
           <h4>Alunos</h4>
-          <Button onClick={gerarRelatorioPDF} className="me-2">Gerar Relatório PDF</Button>
-          <Button onClick={() => setMostrarCashFlow(true)} className="me-2">Ver Fluxo de Caixa</Button>
+          <Button onClick={gerarRelatorioPDF} className="me-2">
+            Gerar Relatório PDF
+          </Button>
+          <Button onClick={() => setMostrarCashFlow(true)} className="me-2">
+            Ver Fluxo de Caixa
+          </Button>
           <Button onClick={() => setMostrarOverdueUsers(true)}>Ver Inadimplentes</Button>
 
           <UserTable
@@ -353,11 +354,7 @@ function PainelAdm() {
                       {total}
                     </td>
                     <td>
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        onClick={() => abrirEdicaoPlano(plano)}
-                      >
+                      <Button variant="warning" size="sm" onClick={() => abrirEdicaoPlano(plano)}>
                         Editar
                       </Button>
                       <Button
@@ -397,10 +394,7 @@ function PainelAdm() {
             setMostrarAdeptosPlano={setMostrarAdeptosPlano}
             adeptosPorPlano={adeptosPorPlano}
           />
-          <CashFlowModal
-            show={mostrarCashFlow}
-            onHide={() => setMostrarCashFlow(false)}
-          />
+          <CashFlowModal show={mostrarCashFlow} onHide={() => setMostrarCashFlow(false)} />
           <OverdueUsersModal
             show={mostrarOverdueUsers}
             onHide={() => setMostrarOverdueUsers(false)}

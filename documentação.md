@@ -24,8 +24,7 @@ Define rotas para:
 /cadastro: Página de cadastro.
 /painel: Painel administrativo (protegido).
 /editar-cadastro: Edição de perfil e planos.
-*: Redireciona para login.
-
+\*: Redireciona para login.
 
 Utiliza BrowserRouter e Routes para navegação.Funções:
 App(): Retorna o componente com as rotas configuradas.Dependências:
@@ -113,8 +112,6 @@ Configura privilégios de administrador.Funções:
 definirAdmin(uid): Define claim admin: true para o usuário.Dependências:
 firebase-admin
 ../src/config/serviceAccountKey.jsonUso:node setAdmin.cjs <UID>
-
-
 
 Arquivo: getAdminStatus.js
 Descrição: Verifica status de administrador do usuário atual.Funcionalidades:
@@ -356,12 +353,9 @@ Testar Funcionalidades: Execute npm run dev e teste login, cadastro, edição, r
 Corrigir Erros: Se jspdf-autotable falhar, reinstale:npm run clean
 npm install jspdf@2.5.1 jspdf-autotable@3.8.2
 
-
 Adicionar Melhorias:
 Filtros no painel (busca por nome).
 Notificações de planos próximos do vencimento.
 Upload de fotos (requer Firebase Storage, plano pago).
-
-
 
 Se precisar de ajuda com testes, correções ou novas funcionalidades, entre em contato!

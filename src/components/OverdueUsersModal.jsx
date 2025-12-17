@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Modal, Button, Table } from 'react-bootstrap';
 import { getOverdueUsers } from '../services/notificationService';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -56,7 +57,7 @@ function OverdueUsersModal({ show, onHide }) {
               </tr>
             </thead>
             <tbody>
-              {overdueUsers.map(user => (
+              {overdueUsers.map((user) => (
                 <tr key={`${user.id}-${user.planoNome}`}>
                   <td>{user.nome}</td>
                   <td>{user.email}</td>
@@ -88,3 +89,8 @@ function OverdueUsersModal({ show, onHide }) {
 }
 
 export default OverdueUsersModal;
+
+OverdueUsersModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onHide: PropTypes.func.isRequired,
+};

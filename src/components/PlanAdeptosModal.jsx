@@ -3,7 +3,12 @@ import { listarAdeptosPlano, formatarTelefone } from '../services/adminService';
 
 function PlanAdeptosModal({ mostrarAdeptosPlano, setMostrarAdeptosPlano, adeptosPorPlano }) {
   return (
-    <Modal show={mostrarAdeptosPlano !== null} onHide={function() { setMostrarAdeptosPlano(null); }}>
+    <Modal
+      show={mostrarAdeptosPlano !== null}
+      onHide={function () {
+        setMostrarAdeptosPlano(null);
+      }}
+    >
       <Modal.Header closeButton>
         <Modal.Title>Adeptos do Plano: {mostrarAdeptosPlano || 'N/A'}</Modal.Title>
       </Modal.Header>
@@ -18,7 +23,7 @@ function PlanAdeptosModal({ mostrarAdeptosPlano, setMostrarAdeptosPlano, adeptos
               </tr>
             </thead>
             <tbody>
-              {listarAdeptosPlano(mostrarAdeptosPlano, adeptosPorPlano).map(function(usuario) {
+              {listarAdeptosPlano(mostrarAdeptosPlano, adeptosPorPlano).map(function (usuario) {
                 return (
                   <tr key={usuario.id}>
                     <td>{usuario.nome || 'Sem nome'}</td>
@@ -34,7 +39,12 @@ function PlanAdeptosModal({ mostrarAdeptosPlano, setMostrarAdeptosPlano, adeptos
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={function() { setMostrarAdeptosPlano(null); }}>
+        <Button
+          variant="secondary"
+          onClick={function () {
+            setMostrarAdeptosPlano(null);
+          }}
+        >
           Fechar
         </Button>
       </Modal.Footer>

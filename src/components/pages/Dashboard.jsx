@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Spinner, Alert, Container, Row, Col, Card, Badge } from "react-bootstrap";
-import FeedbackForm from "../FeedbackForm";
-import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import React, { useState, useEffect } from 'react';
+import { Spinner, Alert, Container, Row, Col, Card, Badge } from 'react-bootstrap';
+import FeedbackForm from '../FeedbackForm';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const db = getFirestore();
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [feedbacks, setFeedbacks] = useState([]);
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState('');
   const [isLogged, setIsLogged] = useState(false);
   const [completedPlan] = useState(true);
 
@@ -18,7 +18,7 @@ const Dashboard = () => {
     const auth = getAuth();
     const unsub = onAuthStateChanged(auth, async (u) => {
       setIsLogged(!!u);
-      setUserName(u ? (u.displayName || u.email || "Cliente") : "");
+      setUserName(u ? u.displayName || u.email || 'Cliente' : '');
       await loadFeedbacks(u);
     });
     return () => unsub();
@@ -26,22 +26,22 @@ const Dashboard = () => {
 
   async function loadFeedbacks(user) {
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       let q;
       if (user) {
-        q = query(collection(db, "Feedbacks"), where("userId", "==", user.uid));
+        q = query(collection(db, 'Feedbacks'), where('userId', '==', user.uid));
       } else {
-        q = query(collection(db, "Feedbacks"), where("approved", "==", true));
+        q = query(collection(db, 'Feedbacks'), where('approved', '==', true));
       }
 
       const snap = await getDocs(q);
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setFeedbacks(list);
     } catch (e) {
-      console.error("Erro ao carregar feedbacks:", e);
-      setError("Erro ao carregar feedbacks.");
+      console.error('Erro ao carregar feedbacks:', e);
+      setError('Erro ao carregar feedbacks.');
     } finally {
       setLoading(false);
     }
@@ -69,16 +69,15 @@ const Dashboard = () => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center">
                     {feedbacks.length > 0 ? (
                       feedbacks.map((fb) => (
-                        <Card key={fb.id} className="feedback-card" style={{ width: "22rem" }}>
+                        <Card key={fb.id} className="feedback-card" style={{ width: '22rem' }}>
                           <Card.Body>
-                            <Card.Title>{fb.userName || "Cliente"}</Card.Title>
+                            <Card.Title>{fb.userName || 'Cliente'}</Card.Title>
                             <Card.Subtitle className="mb-2 text-muted">
                               Avaliação: {fb.rating}/5
                             </Card.Subtitle>
-                            <Card.Text>{fb.comments || "Sem comentário"}</Card.Text>
+                            <Card.Text>{fb.comments || 'Sem comentário'}</Card.Text>
 
                             {/* Status do feedback */}
-                          
                           </Card.Body>
                         </Card>
                       ))
@@ -95,7 +94,9 @@ const Dashboard = () => {
                   )}
                 </>
               ) : (
-                <p className="text-center">Você ainda não completou nenhum plano. Continue seu progresso!</p>
+                <p className="text-center">
+                  Você ainda não completou nenhum plano. Continue seu progresso!
+                </p>
               )}
             </div>
           )}

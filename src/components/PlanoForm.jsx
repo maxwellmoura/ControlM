@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Form, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -16,7 +17,7 @@ export default function PlanoForm({ onSubmit, planoEditar, cancelar }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -64,3 +65,9 @@ export default function PlanoForm({ onSubmit, planoEditar, cancelar }) {
     </Form>
   );
 }
+
+PlanoForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  planoEditar: PropTypes.object,
+  cancelar: PropTypes.func,
+};

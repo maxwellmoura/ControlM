@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { Button, Form, Alert } from "react-bootstrap";
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { Button, Form, Alert } from 'react-bootstrap';
 
 const db = getFirestore();
 
@@ -24,7 +25,7 @@ const FeedbackForm = ({ planId }) => {
     e.preventDefault();
 
     if (!user) {
-      alert("Você precisa estar logado para enviar um feedback");
+      alert('Você precisa estar logado para enviar um feedback');
       return;
     }
 
@@ -33,7 +34,7 @@ const FeedbackForm = ({ planId }) => {
     setSuccessMessage('');
 
     try {
-      await addDoc(collection(db, "Feedbacks"), {
+      await addDoc(collection(db, 'Feedbacks'), {
         userId: user.uid,
         userName,
         planId: planId || null,
@@ -43,12 +44,12 @@ const FeedbackForm = ({ planId }) => {
         createdAt: serverTimestamp(),
       });
 
-      setSuccessMessage("Feedback enviado com sucesso! Aguarde aprovação.");
+      setSuccessMessage('Feedback enviado com sucesso! Aguarde aprovação.');
       setRating(1);
       setComments('');
     } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
-      setErrorMessage("Houve um erro ao enviar seu feedback");
+      console.error('Erro ao enviar feedback:', error);
+      setErrorMessage('Houve um erro ao enviar seu feedback');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +72,9 @@ const FeedbackForm = ({ planId }) => {
             size="sm"
           >
             {[1, 2, 3, 4, 5].map((i) => (
-              <option key={i} value={i}>{i}</option>
+              <option key={i} value={i}>
+                {i}
+              </option>
             ))}
           </Form.Control>
         </Form.Group>
@@ -84,12 +87,12 @@ const FeedbackForm = ({ planId }) => {
             value={comments}
             onChange={(e) => setComments(e.target.value)}
             placeholder="O que você achou da aula ou plano?"
-            style={{ fontSize: "0.9rem" }}
+            style={{ fontSize: '0.9rem' }}
           />
         </Form.Group>
 
         <Button type="submit" variant="primary" disabled={isSubmitting} className="w-10 mb-5">
-          {isSubmitting ? "Enviando..." : "Enviar Feedback"}
+          {isSubmitting ? 'Enviando...' : 'Enviar Feedback'}
         </Button>
       </Form>
     </div>
@@ -97,3 +100,7 @@ const FeedbackForm = ({ planId }) => {
 };
 
 export default FeedbackForm;
+
+FeedbackForm.propTypes = {
+  planId: PropTypes.string,
+};

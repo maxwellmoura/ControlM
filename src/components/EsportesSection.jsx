@@ -52,7 +52,8 @@ export default function EsportesSection() {
     {
       imagem: capoeira,
       titulo: 'Capoeira',
-      descricao: 'Condicionamento físico e técnicas de combate com a arte marcial mais antiga do Brasil',
+      descricao:
+        'Condicionamento físico e técnicas de combate com a arte marcial mais antiga do Brasil',
       horario: 'Horário',
       time: '21:00 (Terça e Quinta)',
     },
@@ -88,12 +89,7 @@ export default function EsportesSection() {
         ))}
       </div>
 
-      <Modal
-        show={!!imagemExpandida}
-        onHide={() => setImagemExpandida(null)}
-        centered
-        size="lg"
-      >
+      <Modal show={!!imagemExpandida} onHide={() => setImagemExpandida(null)} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{imagemExpandida?.titulo}</Modal.Title>
         </Modal.Header>

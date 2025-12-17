@@ -53,15 +53,15 @@ function CashFlowModal({ show, onHide }) {
 
         const curStart = new Date(today.getFullYear(), today.getMonth(), 1);
         const curEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        curStart.setHours(0,0,0,0);
-        curEnd.setHours(0,0,0,0);
+        curStart.setHours(0, 0, 0, 0);
+        curEnd.setHours(0, 0, 0, 0);
 
         const monthWindows = Array.from({ length: 6 }, (_, i) => {
           const idx = 5 - i;
           const start = new Date(today.getFullYear(), today.getMonth() - idx, 1);
           const end = new Date(today.getFullYear(), today.getMonth() - idx + 1, 0);
-          start.setHours(0,0,0,0);
-          end.setHours(0,0,0,0);
+          start.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
           const label = start.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
           return { start, end, label };
         });
@@ -69,7 +69,7 @@ function CashFlowModal({ show, onHide }) {
 
         const planosSnapshot = await getDocs(collection(db, 'Planos'));
         const planosMap = new Map();
-        planosSnapshot.forEach(doc => {
+        planosSnapshot.forEach((doc) => {
           const d = doc.data() || {};
           planosMap.set(d.text, Number(d.value) || 0);
         });
@@ -82,11 +82,11 @@ function CashFlowModal({ show, onHide }) {
         let expiredPlans = 0;
         const revenueByPlanMap = {};
 
-        usuariosSnapshot.forEach(docu => {
+        usuariosSnapshot.forEach((docu) => {
           const userData = docu.data() || {};
           const arr = Array.isArray(userData.planos) ? userData.planos : [];
 
-          arr.forEach(plano => {
+          arr.forEach((plano) => {
             if (!plano?.nome) return;
 
             const adesaoDate = parseYMD(plano.dataAdesao);
@@ -107,7 +107,7 @@ function CashFlowModal({ show, onHide }) {
               adesaoDate.getFullYear() === curStart.getFullYear();
 
             if (adesaoInCurMonth) {
-              const hadPrevious = arr.some(p2 => {
+              const hadPrevious = arr.some((p2) => {
                 if (p2 === plano || p2?.nome !== plano.nome) return false;
                 const a2 = parseYMD(p2.dataAdesao);
                 return a2 && a2 < curStart;
@@ -130,7 +130,7 @@ function CashFlowModal({ show, onHide }) {
           renewals,
           expiredPlans,
         });
-        setRevenueTrend(revenueByMonth.map(v => Number(v.toFixed(2))));
+        setRevenueTrend(revenueByMonth.map((v) => Number(v.toFixed(2))));
         setRevenueByPlan(revenueByPlanMap);
         setLoading(false);
       } catch (err) {
@@ -143,7 +143,8 @@ function CashFlowModal({ show, onHide }) {
     fetchCashFlowData();
   }, [show]);
 
-  const moeda = (n) => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const moeda = (n) =>
+    Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   function gerarRelatorioFinanceiroPDF() {
     const doc = new jsPDF();
     const hojeBR = new Date().toLocaleDateString('pt-BR');
@@ -189,7 +190,7 @@ function CashFlowModal({ show, onHide }) {
       });
     }
 
-    doc.save(`relatorio_financeiro_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`relatorio_financeiro_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
   const pieChartData = {
@@ -198,7 +199,15 @@ function CashFlowModal({ show, onHide }) {
       {
         label: 'Receita por Plano (R$)',
         data: Object.values(revenueByPlan),
-        backgroundColor: ['#0d6efd','#198754','#dc3545','#ffc107','#20c997','#6610f2','#fd7e14'],
+        backgroundColor: [
+          '#0d6efd',
+          '#198754',
+          '#dc3545',
+          '#ffc107',
+          '#20c997',
+          '#6610f2',
+          '#fd7e14',
+        ],
         borderColor: '#fff',
         borderWidth: 1,
       },

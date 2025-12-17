@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -8,18 +8,16 @@ import {
   getRedirectResult,
   GoogleAuthProvider,
   sendPasswordResetEmail,
-  updateProfile,
-} from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../config/firebaseConfig";
-import "bootstrap/dist/css/bootstrap.min.css";
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import logo from '../assets/logo.png';
 
-
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();
@@ -28,7 +26,7 @@ function LoginPage() {
 
   async function ensureUserProfile(user) {
     if (!user?.uid) return;
-    const ref = doc(db, "Usuarios", user.uid);
+    const ref = doc(db, 'Usuarios', user.uid);
     const snap = await getDoc(ref);
     const base = {
       email: user.email ?? null,
@@ -37,7 +35,7 @@ function LoginPage() {
       updatedAt: serverTimestamp(),
     };
     if (!snap.exists()) {
-      await setDoc(ref, { ...base, createdAt: serverTimestamp(), role: "user" });
+      await setDoc(ref, { ...base, createdAt: serverTimestamp(), role: 'user' });
     } else {
       await setDoc(ref, { ...snap.data(), ...base }, { merge: true });
     }
@@ -51,50 +49,50 @@ function LoginPage() {
           await ensureUserProfile(result.user);
           const token = await result.user.getIdTokenResult(true);
           const isAdmin = !!token.claims?.admin;
-          navigate(isAdmin ? "/painel" : "/", { replace: true });
+          navigate(isAdmin ? '/painel' : '/', { replace: true });
         }
       } catch (e) {
-        console.error("Redirect login falhou:", e);
+        console.error('Redirect login falhou:', e);
       }
     })();
-  }, []);
+  }, [auth, navigate]);
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    setErro("");
+    setErro('');
     setLoading(true);
     try {
       const emailInput = email.trim();
-      const loginEmail = emailInput.toLowerCase() === "admin" ? "admin@admin.com.br" : emailInput;
+      const loginEmail = emailInput.toLowerCase() === 'admin' ? 'admin@admin.com.br' : emailInput;
       const cred = await signInWithEmailAndPassword(auth, loginEmail, senha);
       await ensureUserProfile(cred.user);
       const token = await cred.user.getIdTokenResult(true);
       const isAdmin = !!token.claims?.admin;
-      navigate(isAdmin ? "/painel" : "/", { replace: true });
+      navigate(isAdmin ? '/painel' : '/', { replace: true });
     } catch (error) {
       console.error(error);
-      setErro("Falha no login. Verifique suas credenciais.");
+      setErro('Falha no login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setErro("");
+    setErro('');
     setLoading(true);
     try {
       const cred = await signInWithPopup(auth, provedorGoogle);
       await ensureUserProfile(cred.user);
       const token = await cred.user.getIdTokenResult(true);
       const isAdmin = !!token.claims?.admin;
-      navigate(isAdmin ? "/painel" : "/", { replace: true });
+      navigate(isAdmin ? '/painel' : '/', { replace: true });
     } catch (err) {
-      console.warn("Popup falhou; tentando redirect...", err?.message);
+      console.warn('Popup falhou; tentando redirect...', err?.message);
       try {
         await signInWithRedirect(auth, provedorGoogle);
       } catch (e2) {
-        console.error("Redirect também falhou:", e2);
-        setErro("Não foi possível concluir o login com o Google.");
+        console.error('Redirect também falhou:', e2);
+        setErro('Não foi possível concluir o login com o Google.');
       }
     } finally {
       setLoading(false);
@@ -102,41 +100,42 @@ function LoginPage() {
   };
 
   const handleRecuperarSenha = async () => {
-    setErro("");
+    setErro('');
     if (!email) {
-      setErro("Informe o e-mail para recuperar a senha.");
+      setErro('Informe o e-mail para recuperar a senha.');
       return;
     }
     try {
       const emailInput = email.trim();
-      const resetEmail = emailInput.toLowerCase() === "admin" ? "admin@admin.com.br" : emailInput;
+      const resetEmail = emailInput.toLowerCase() === 'admin' ? 'admin@admin.com.br' : emailInput;
       await sendPasswordResetEmail(auth, resetEmail);
-      alert("E-mail de redefinição enviado (verifique sua caixa de entrada).");
+      alert('E-mail de redefinição enviado (verifique sua caixa de entrada).');
     } catch (e) {
       console.error(e);
-      setErro("Não foi possível enviar o e-mail de redefinição.");
+      setErro('Não foi possível enviar o e-mail de redefinição.');
     }
   };
 
-  const irParaCadastro = () => navigate("/cadastro");
+  const irParaCadastro = () => navigate('/cadastro');
 
   return (
-    <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "80vh" }}>
+    <div
+      className="container d-flex align-items-center justify-content-center"
+      style={{ minHeight: '80vh' }}
+    >
       <div className="w-100" style={{ maxWidth: 420 }}>
-          <div className="text-center mb-4">
-
-         <img src={logo} alt="Logo" lt="ControlM" style={{ height: '110px' }}/>        
-
+        <div className="text-center mb-4">
+          <img src={logo} alt="Logo" title="ControlM" style={{ height: '110px' }} />
         </div>
-        <h3 className="mb-4 text-center">Entrar Control<span className="fs-1 fst-italic">M</span></h3>
+        <h3 className="mb-4 text-center">
+          Entrar Control<span className="fs-1 fst-italic">M</span>
+        </h3>
 
         {erro && (
           <div className="alert alert-danger py-2 text-center" role="alert">
             {erro}
           </div>
         )}
-
-       
 
         <form onSubmit={handleEmailLogin}>
           <div className="mb-3">
@@ -153,7 +152,7 @@ function LoginPage() {
             <label className="form-label">Senha</label>
             <div className="input-group">
               <input
-                type={mostrarSenha ? "text" : "password"}
+                type={mostrarSenha ? 'text' : 'password'}
                 className="form-control"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
@@ -164,37 +163,28 @@ function LoginPage() {
                 className="btn btn-outline-secondary"
                 onClick={() => setMostrarSenha((v) => !v)}
               >
-                {mostrarSenha ? "Ocultar" : "Mostrar"}
+                {mostrarSenha ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </div>
-          
 
           <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
-           <button
-          type="button"
-          className="btn btn-outline-danger w-100 mt-2"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-        >
-          {loading ? "Entrando..." : "Entrar com Google"}
-        </button>
+          <button
+            type="button"
+            className="btn btn-outline-danger w-100 mt-2"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            {loading ? 'Entrando...' : 'Entrar com Google'}
+          </button>
 
           <div className="d-flex justify-content-between mt-3">
-            <button
-              type="button"
-              className="btn btn-link p-0"
-              onClick={handleRecuperarSenha}
-            >
+            <button type="button" className="btn btn-link p-0" onClick={handleRecuperarSenha}>
               Esqueci minha senha
             </button>
-            <button
-              onClick={irParaCadastro}
-              className="btn btn-link p-0"
-              type="button"
-            >
+            <button onClick={irParaCadastro} className="btn btn-link p-0" type="button">
               Cadastre-se
             </button>
           </div>

@@ -46,7 +46,9 @@ function PlanoSection() {
 
     if (plano.text === 'Aula Experimental') {
       const mensagem = encodeURIComponent(
-        `Ola, tenho uma nova adesao para a Aula Experimental. O nome do usuario e ${usuario.displayName || 'sem nome'}.`
+        `Ola, tenho uma nova adesao para a Aula Experimental. O nome do usuario e ${
+          usuario.displayName || 'sem nome'
+        }.`
       );
       const whatsappUrl = `https://api.whatsapp.com/send/?phone=%2B5511999999999&text=${mensagem}`;
       window.open(whatsappUrl, '_blank');
@@ -66,8 +68,11 @@ function PlanoSection() {
         if (!userSnap.exists()) throw new Error('Usuario nao encontrado.');
 
         const atuais = userSnap.data().planos || [];
-        const jaTemAtivo = atuais.some((p) => p.nome === plano.text && p.dataExpiracao >= dataAdesao);
-        if (jaTemAtivo) throw new Error(`Voce ja possui uma adesao ativa do plano "${plano.text}".`);
+        const jaTemAtivo = atuais.some(
+          (p) => p.nome === plano.text && p.dataExpiracao >= dataAdesao
+        );
+        if (jaTemAtivo)
+          throw new Error(`Voce ja possui uma adesao ativa do plano "${plano.text}".`);
 
         const novoPlano = { nome: plano.text, dataAdesao, dataExpiracao };
         transaction.update(userRef, { planos: [...atuais, novoPlano] });
@@ -112,7 +117,9 @@ function PlanoSection() {
                   </div>
                 )}
                 <Button variant="primary" size="sm" onClick={() => aderirPlano(plano)}>
-                  {plano.text === 'Aula Experimental' ? 'Agendar Aula Experimental' : 'Aderir a este Plano'}
+                  {plano.text === 'Aula Experimental'
+                    ? 'Agendar Aula Experimental'
+                    : 'Aderir a este Plano'}
                 </Button>
               </Card.Body>
             </Card>
@@ -136,7 +143,9 @@ function PlanoSection() {
         ))}
       </div>
 
-      {planos.length === 0 && <p className="text-center text-muted">Nenhum plano disponivel no momento.</p>}
+      {planos.length === 0 && (
+        <p className="text-center text-muted">Nenhum plano disponivel no momento.</p>
+      )}
     </div>
   );
 }

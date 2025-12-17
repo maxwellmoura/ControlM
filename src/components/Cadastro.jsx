@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, updateProfile } from 'firebase/auth';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
+  updateProfile,
+} from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -53,7 +58,10 @@ export default function Cadastro() {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+    <div
+      className="container d-flex justify-content-center align-items-center"
+      style={{ minHeight: '100vh' }}
+    >
       <div className="card p-4" style={{ width: '100%', maxWidth: '500px' }}>
         <img className="img-fluid w-25 mx-auto d-block" src={logo} alt="Logo" />
         <h2 className="text-center mb-4">Cadastro </h2>
@@ -96,7 +104,7 @@ export default function Cadastro() {
             <label htmlFor="senha">Senha</label>
             <div className="input-group">
               <input
-                type={mostrarSenha ? "text" : "password"}
+                type={mostrarSenha ? 'text' : 'password'}
                 className="form-control"
                 id="senha"
                 value={senha}
@@ -108,7 +116,7 @@ export default function Cadastro() {
                 className="btn btn-outline-secondary"
                 onClick={() => setMostrarSenha((v) => !v)}
               >
-                {mostrarSenha ? "Ocultar" : "Mostrar"}
+                {mostrarSenha ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </div>
@@ -116,7 +124,7 @@ export default function Cadastro() {
             <label htmlFor="senhaConfirmada">Repita a Senha</label>
             <div className="input-group">
               <input
-                type={mostrarSenhaConfirma ? "text" : "password"}
+                type={mostrarSenhaConfirma ? 'text' : 'password'}
                 className="form-control"
                 id="senhaConfirmada"
                 value={senhaConfirmada}
@@ -128,7 +136,7 @@ export default function Cadastro() {
                 className="btn btn-outline-secondary"
                 onClick={() => setMostrarSenhaConfirma((v) => !v)}
               >
-                {mostrarSenhaConfirma ? "Ocultar" : "Mostrar"}
+                {mostrarSenhaConfirma ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </div>
@@ -136,11 +144,7 @@ export default function Cadastro() {
             <button type="submit" className="btn btn-primary">
               Criar Conta
             </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate('/inicio')}
-            >
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/inicio')}>
               Retornar
             </button>
           </div>

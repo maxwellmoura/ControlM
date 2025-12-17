@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import PrivateRoute from './services/dataAcess/PrivateRoute';
 
@@ -25,7 +25,14 @@ function App() {
             <Route path="/cadastro" element={<Cadastro />} />
 
             {/* Rota protegida para painel administrativo */}
-            <Route path="/painel" element={<PrivateRoute><PainelAdm /></PrivateRoute>} />
+            <Route
+              path="/painel"
+              element={
+                <PrivateRoute>
+                  <PainelAdm />
+                </PrivateRoute>
+              }
+            />
 
             {/* Rota para editar cadastro */}
             <Route path="/editar-cadastro" element={<EditarCadastro />} />

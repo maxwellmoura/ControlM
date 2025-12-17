@@ -7,14 +7,16 @@ export async function getOverdueUsers() {
   const snapshot = await getDocs(usuariosRef);
   const overdueUsers = [];
 
-  snapshot.forEach(doc => {
+  snapshot.forEach((doc) => {
     const userData = doc.data();
     const planos = Array.isArray(userData.planos) ? userData.planos : [];
-    planos.forEach(plano => {
+    planos.forEach((plano) => {
       if (plano.dataExpiracao) {
         const expiracaoDate = new Date(plano.dataExpiracao);
         if (expiracaoDate < today && userData.telefone) {
-          const message = `Olá, ${userData.nome}! Seu plano "${plano.nome}" venceu em ${new Date(plano.dataExpiracao).toLocaleDateString('pt-BR')}. Renove agora para continuar treinando!`;
+          const message = `Olá, ${userData.nome}! Seu plano "${plano.nome}" venceu em ${new Date(
+            plano.dataExpiracao
+          ).toLocaleDateString('pt-BR')}. Renove agora para continuar treinando!`;
           const encodedMessage = encodeURIComponent(message);
           overdueUsers.push({
             id: doc.id,

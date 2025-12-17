@@ -1,4 +1,5 @@
 import { Modal, Button, Table } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import {
   formatarDataParaExibicao,
   formatarTelefone,
@@ -15,10 +16,7 @@ function UserPlansModal({ mostrarPlanosUsuario, setMostrarPlanosUsuario }) {
   }
 
   return (
-    <Modal
-      show={mostrarPlanosUsuario !== null}
-      onHide={() => setMostrarPlanosUsuario(null)}
-    >
+    <Modal show={mostrarPlanosUsuario !== null} onHide={() => setMostrarPlanosUsuario(null)}>
       <Modal.Header closeButton>
         <Modal.Title>{mostrarPlanosUsuario?.nome || 'Sem nome'}</Modal.Title>
       </Modal.Header>
@@ -42,15 +40,9 @@ function UserPlansModal({ mostrarPlanosUsuario, setMostrarPlanosUsuario }) {
                 {mostrarPlanosUsuario.planos.map((plano, index) => (
                   <tr key={`${plano.nome}-${plano.dataAdesao}-${index}`}>
                     <td>{plano.nome || 'N/A'}</td>
-                    <td>
-                      {plano.dataAdesao
-                        ? formatarDataParaExibicao(plano.dataAdesao)
-                        : 'N/A'}
-                    </td>
+                    <td>{plano.dataAdesao ? formatarDataParaExibicao(plano.dataAdesao) : 'N/A'}</td>
                     <td className={classeExpiracao(plano.dataExpiracao)}>
-                      {plano.dataExpiracao
-                        ? formatarDataParaExibicao(plano.dataExpiracao)
-                        : 'N/A'}
+                      {plano.dataExpiracao ? formatarDataParaExibicao(plano.dataExpiracao) : 'N/A'}
                     </td>
                   </tr>
                 ))}
@@ -60,10 +52,12 @@ function UserPlansModal({ mostrarPlanosUsuario, setMostrarPlanosUsuario }) {
             {/* Legenda */}
             <div
               className="mt-3"
-              style={{ display: 'flex' ,alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}
             >
               <strong>Legenda:</strong>
-              <span>✅ <span style={{ fontWeight: 500}}></span> &gt;15 dias,</span>
+              <span>
+                ✅ <span style={{ fontWeight: 500 }}></span> &gt;15 dias,
+              </span>
               <span>🟨 15-5,</span>
               <span>🟥 &lt;5</span>
             </div>
@@ -83,3 +77,8 @@ function UserPlansModal({ mostrarPlanosUsuario, setMostrarPlanosUsuario }) {
 }
 
 export default UserPlansModal;
+
+UserPlansModal.propTypes = {
+  mostrarPlanosUsuario: PropTypes.object,
+  setMostrarPlanosUsuario: PropTypes.func.isRequired,
+};

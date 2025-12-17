@@ -1,4 +1,5 @@
 import { Table, Button } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import { calcularValorTotalPlanos, formatarTelefone } from '../services/adminService';
 
 function UserTable({ usuarios, planos, abrirEdicaoUsuario, abrirDetalhesPlanos, excluirUsuario }) {
@@ -32,11 +33,7 @@ function UserTable({ usuarios, planos, abrirEdicaoUsuario, abrirDetalhesPlanos, 
             <td>{usuario.ehAdmin ? 'Sim' : 'Não'}</td>
             <td>{calcularValorTotalPlanos(usuario.planos, planos)}</td>
             <td>
-              <Button
-                variant="warning"
-                size="sm"
-                onClick={() => abrirEdicaoUsuario(usuario)}
-              >
+              <Button variant="warning" size="sm" onClick={() => abrirEdicaoUsuario(usuario)}>
                 Editar
               </Button>
               {!usuario.ehAdmin && (
@@ -58,3 +55,20 @@ function UserTable({ usuarios, planos, abrirEdicaoUsuario, abrirDetalhesPlanos, 
 }
 
 export default UserTable;
+
+UserTable.propTypes = {
+  usuarios: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      nome: PropTypes.string,
+      email: PropTypes.string,
+      telefone: PropTypes.string,
+      planos: PropTypes.array,
+      ehAdmin: PropTypes.bool,
+    })
+  ).isRequired,
+  planos: PropTypes.array,
+  abrirEdicaoUsuario: PropTypes.func.isRequired,
+  abrirDetalhesPlanos: PropTypes.func,
+  excluirUsuario: PropTypes.func.isRequired,
+};

@@ -23,9 +23,7 @@ function getCredentialJson() {
 
 const credentialJson = getCredentialJson();
 
-admin.initializeApp(
-  credentialJson ? { credential: admin.credential.cert(credentialJson) } : {}
-);
+admin.initializeApp(credentialJson ? { credential: admin.credential.cert(credentialJson) } : {});
 
 async function definirAdmin(uid) {
   if (!uid) {

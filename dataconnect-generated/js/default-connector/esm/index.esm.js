@@ -1,7 +1,5 @@
-
 export const connectorConfig = {
   connector: 'default',
   service: 'controlm',
-  location: 'us-central1'
+  location: 'us-central1',
 };
-

@@ -19,35 +19,38 @@ export default function EditarCadastro() {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  useEffect(function() {
-    const usuarioAtual = auth.currentUser;
-    if (!usuarioAtual) {
-      console.log('Usuário não está logado, redirecionando para /inicio');
-      navigate('/inicio');
-      return;
-    }
-    async function carregarDadosUsuario() {
-      try {
-        const docRef = doc(db, 'Usuarios', usuarioAtual.uid);
-        const docSnap = await getDoc(docRef, { source: 'server' });
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          console.log('Dados do usuário carregados:', JSON.stringify(data, null, 2));
-          setNome(data.nome || '');
-          setEmail(data.email || '');
-          setTelefone(data.telefone || '');
-          setPlanos(Array.isArray(data.planos) ? data.planos : []);
-        } else {
-          console.log('Documento do usuário não encontrado');
-          setErro('Usuário não encontrado.');
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
-        setErro('Erro ao carregar dados do usuário.');
+  useEffect(
+    function () {
+      const usuarioAtual = auth.currentUser;
+      if (!usuarioAtual) {
+        console.log('Usuário não está logado, redirecionando para /inicio');
+        navigate('/inicio');
+        return;
       }
-    }
-    carregarDadosUsuario();
-  }, [navigate, auth]);
+      async function carregarDadosUsuario() {
+        try {
+          const docRef = doc(db, 'Usuarios', usuarioAtual.uid);
+          const docSnap = await getDoc(docRef, { source: 'server' });
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            console.log('Dados do usuário carregados:', JSON.stringify(data, null, 2));
+            setNome(data.nome || '');
+            setEmail(data.email || '');
+            setTelefone(data.telefone || '');
+            setPlanos(Array.isArray(data.planos) ? data.planos : []);
+          } else {
+            console.log('Documento do usuário não encontrado');
+            setErro('Usuário não encontrado.');
+          }
+        } catch (error) {
+          console.error('Erro ao carregar dados do usuário:', error);
+          setErro('Erro ao carregar dados do usuário.');
+        }
+      }
+      carregarDadosUsuario();
+    },
+    [navigate, auth]
+  );
 
   async function salvarAlteracoes(e) {
     e.preventDefault();
@@ -74,7 +77,7 @@ export default function EditarCadastro() {
       });
       console.log('Dados do usuário atualizados:', { nome, email, telefone, planos });
       setSucesso('Cadastro atualizado com sucesso!');
-      setTimeout(function() {
+      setTimeout(function () {
         navigate('/');
       }, 2000);
     } catch (error) {
@@ -90,12 +93,15 @@ export default function EditarCadastro() {
       return;
     }
     const numeroWhatsApp = '+5588999760102'; // Substitua pelo número real do administrador
-    const mensagem = `Olá, gostaria de solicitar a extensão do plano "${plano.nome}". Data de expiração atual: ${formatarDataParaExibicao(plano.dataExpiracao)}. Nome: ${nome}, Email: ${email}.`;
+    const mensagem = `Olá, gostaria de solicitar a extensão do plano "${
+      plano.nome
+    }". Data de expiração atual: ${formatarDataParaExibicao(
+      plano.dataExpiracao
+    )}. Nome: ${nome}, Email: ${email}.`;
     const mensagemEncoded = encodeURIComponent(mensagem);
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`;
     console.log('Gerando link de WhatsApp:', urlWhatsApp);
     window.open(urlWhatsApp, '_blank');
-    
   }
 
   return (
@@ -110,7 +116,9 @@ export default function EditarCadastro() {
           <Form.Control
             type="text"
             value={nome}
-            onChange={function(e) { setNome(e.target.value); }}
+            onChange={function (e) {
+              setNome(e.target.value);
+            }}
             placeholder="Digite seu nome"
           />
         </Form.Group>
@@ -119,7 +127,9 @@ export default function EditarCadastro() {
           <Form.Control
             type="email"
             value={email}
-            onChange={function(e) { setEmail(e.target.value); }}
+            onChange={function (e) {
+              setEmail(e.target.value);
+            }}
             placeholder="Digite seu email"
           />
         </Form.Group>
@@ -128,7 +138,9 @@ export default function EditarCadastro() {
           <Form.Control
             type="text"
             value={telefone}
-            onChange={function(e) { setTelefone(e.target.value); }}
+            onChange={function (e) {
+              setTelefone(e.target.value);
+            }}
             placeholder="Digite seu telefone"
           />
         </Form.Group>
@@ -149,17 +161,21 @@ export default function EditarCadastro() {
             </tr>
           </thead>
           <tbody>
-            {planos.map(function(plano, index) {
+            {planos.map(function (plano, index) {
               return (
                 <tr key={plano.nome + plano.dataAdesao + index}>
                   <td>{plano.nome || 'N/A'}</td>
                   <td>{plano.dataAdesao ? formatarDataParaExibicao(plano.dataAdesao) : 'N/A'}</td>
-                  <td>{plano.dataExpiracao ? formatarDataParaExibicao(plano.dataExpiracao) : 'N/A'}</td>
+                  <td>
+                    {plano.dataExpiracao ? formatarDataParaExibicao(plano.dataExpiracao) : 'N/A'}
+                  </td>
                   <td>
                     <Button
                       variant="success"
                       size="sm"
-                      onClick={function() { solicitarExtensaoPlano(plano); }}
+                      onClick={function () {
+                        solicitarExtensaoPlano(plano);
+                      }}
                     >
                       Solicitar Extensão
                     </Button>

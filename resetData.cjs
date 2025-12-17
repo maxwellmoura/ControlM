@@ -22,9 +22,9 @@ const path = require('path');
 // ---------------------- Flags de linha de comando ----------------------
 const argv = new Set(process.argv.slice(2));
 const DRY_RUN = argv.has('--dry');
-const DO_USERS = !argv.has('--no-users');          // zerar adesões dos usuários
-const DO_ADEPTS = !argv.has('--no-adept');         // zerar adeptos em Planos
-const DO_REPORTS = !argv.has('--no-reports');      // limpar coleções de relatórios
+const DO_USERS = !argv.has('--no-users'); // zerar adesões dos usuários
+const DO_ADEPTS = !argv.has('--no-adept'); // zerar adeptos em Planos
+const DO_REPORTS = !argv.has('--no-reports'); // limpar coleções de relatórios
 const PURGE_ORPHANS = argv.has('--purge-orphans'); // remover adesões cujos planos não existem mais
 
 // Liste aqui os nomes das coleções de relatórios/fluxo usadas no seu projeto.
@@ -42,7 +42,7 @@ const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
 if (!fs.existsSync(serviceAccountPath)) {
   console.error(
     `Erro: ${serviceAccountPath} não encontrado.\n` +
-    `Baixe em Firebase Console > Project Settings > Service Accounts e salve nesta pasta.`
+      `Baixe em Firebase Console > Project Settings > Service Accounts e salve nesta pasta.`
   );
   process.exit(1);
 }
@@ -127,7 +127,9 @@ async function zerarAdesoesUsuarios() {
     totalAtualizados += chunk.length;
     console.log(`Atualizados ${chunk.length} usuários (acumulado: ${totalAtualizados})`);
   }
-  console.log(`${DRY_RUN ? '[DRY] ' : ''}Total de usuários com adesões zeradas: ${totalAtualizados}`);
+  console.log(
+    `${DRY_RUN ? '[DRY] ' : ''}Total de usuários com adesões zeradas: ${totalAtualizados}`
+  );
 }
 
 async function zerarAdeptosPlanos() {
@@ -157,7 +159,8 @@ async function zerarAdeptosPlanos() {
 }
 
 async function removerAdesoesOrfas() {
-  if (!PURGE_ORPHANS) return console.log('PULANDO: remoção de adesões órfãs (--purge-orphans não usado).');
+  if (!PURGE_ORPHANS)
+    return console.log('PULANDO: remoção de adesões órfãs (--purge-orphans não usado).');
 
   console.log('--- Removendo adesões órfãs em /Usuarios ---');
   const planosDocs = await getAllDocs('Planos', 1000);
@@ -196,14 +199,20 @@ async function removerAdesoesOrfas() {
     console.log(`Lote processado (ajustes aplicados até agora: ${totalAjustados})`);
   }
 
-  console.log(`${DRY_RUN ? '[DRY] ' : ''}Usuários ajustados (removidas adesões órfãs): ${totalAjustados}`);
+  console.log(
+    `${DRY_RUN ? '[DRY] ' : ''}Usuários ajustados (removidas adesões órfãs): ${totalAjustados}`
+  );
 }
 
 // ---------------------- Execução ----------------------
 (async () => {
   console.log('================ RESET DE DADOS ================');
   console.log(`Dry-run: ${DRY_RUN ? 'SIM (nenhuma escrita será feita)' : 'NÃO'}`);
-  console.log(`Ações: ${DO_REPORTS ? 'limpar relatórios; ' : ''}${DO_USERS ? 'zerar adesões; ' : ''}${DO_ADEPTS ? 'zerar adeptos; ' : ''}${PURGE_ORPHANS ? 'remover órfãs' : ''}`);
+  console.log(
+    `Ações: ${DO_REPORTS ? 'limpar relatórios; ' : ''}${DO_USERS ? 'zerar adesões; ' : ''}${
+      DO_ADEPTS ? 'zerar adeptos; ' : ''
+    }${PURGE_ORPHANS ? 'remover órfãs' : ''}`
+  );
   try {
     if (DO_REPORTS) await limparColecoesDeRelatorio();
     if (DO_USERS) await zerarAdesoesUsuarios();

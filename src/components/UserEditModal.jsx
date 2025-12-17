@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { formatarDataLocal } from '../services/adminService';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -14,27 +15,30 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
   });
   const [erro, setErro] = useState('');
 
-  useEffect(function() {
-    if (editandoUsuario) {
-      console.log('Dados do usuário para edição:', JSON.stringify(editandoUsuario, null, 2));
-      setFormularioUsuario({
-        nome: editandoUsuario.nome || 'Sem nome',
-        email: editandoUsuario.email || 'N/A',
-        planos: Array.isArray(editandoUsuario.planos) ? editandoUsuario.planos : [],
-        ehAdmin: editandoUsuario.ehAdmin || false,
-        telefone: editandoUsuario.telefone || '',
-      });
-    } else {
-      console.log('Nenhum usuário sendo editado, limpando formulário');
-      setFormularioUsuario({
-        nome: '',
-        email: '',
-        planos: [],
-        ehAdmin: false,
-        telefone: '',
-      });
-    }
-  }, [editandoUsuario]);
+  useEffect(
+    function () {
+      if (editandoUsuario) {
+        console.log('Dados do usuário para edição:', JSON.stringify(editandoUsuario, null, 2));
+        setFormularioUsuario({
+          nome: editandoUsuario.nome || 'Sem nome',
+          email: editandoUsuario.email || 'N/A',
+          planos: Array.isArray(editandoUsuario.planos) ? editandoUsuario.planos : [],
+          ehAdmin: editandoUsuario.ehAdmin || false,
+          telefone: editandoUsuario.telefone || '',
+        });
+      } else {
+        console.log('Nenhum usuário sendo editado, limpando formulário');
+        setFormularioUsuario({
+          nome: '',
+          email: '',
+          planos: [],
+          ehAdmin: false,
+          telefone: '',
+        });
+      }
+    },
+    [editandoUsuario]
+  );
 
   function adicionarPlanoFormulario() {
     const hoje = new Date();
@@ -45,7 +49,7 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
       dataAdesao: formatarDataLocal(hoje),
       dataExpiracao: formatarDataLocal(dataExpiracao),
     };
-    setFormularioUsuario(function(form) {
+    setFormularioUsuario(function (form) {
       return { ...form, planos: [...form.planos, novoPlano] };
     });
     console.log('Novo plano adicionado:', JSON.stringify(novoPlano, null, 2));
@@ -60,19 +64,21 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
         const dataExpiracao = new Date(dataAdesao);
         dataExpiracao.setMonth(dataAdesao.getMonth() + 1);
         novosPlanos[index].dataExpiracao = formatarDataLocal(dataExpiracao);
-        console.log(`Data de adesão alterada para ${valor}, nova data de expiração: ${novosPlanos[index].dataExpiracao}`);
+        console.log(
+          `Data de adesão alterada para ${valor}, nova data de expiração: ${novosPlanos[index].dataExpiracao}`
+        );
       }
     }
-    setFormularioUsuario(function(form) {
+    setFormularioUsuario(function (form) {
       return { ...form, planos: novosPlanos };
     });
   }
 
   function removerPlanoFormulario(index) {
-    let novosPlanos = formularioUsuario.planos.filter(function(_, i) {
+    let novosPlanos = formularioUsuario.planos.filter(function (_, i) {
       return i !== index;
     });
-    setFormularioUsuario(function(form) {
+    setFormularioUsuario(function (form) {
       return { ...form, planos: novosPlanos };
     });
     console.log('Plano removido do formulário, índice:', index);
@@ -91,7 +97,10 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
         console.log('Erro ao salvar: Plano incompleto', JSON.stringify(plano, null, 2));
         return;
       }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(plano.dataAdesao) || !/^\d{4}-\d{2}-\d{2}$/.test(plano.dataExpiracao)) {
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(plano.dataAdesao) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(plano.dataExpiracao)
+      ) {
         setErro('Datas de adesão e expiração devem estar no formato YYYY-MM-DD.');
         console.log('Erro ao salvar: Formato de data inválido', JSON.stringify(plano, null, 2));
         return;
@@ -104,19 +113,24 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
       telefone: formularioUsuario.telefone || '',
       admin: formularioUsuario.ehAdmin || false,
     })
-      .then(function() {
+      .then(function () {
         console.log('Usuário salvo com sucesso:', JSON.stringify(formularioUsuario, null, 2));
         setEditandoUsuario(null);
         carregarUsuarios();
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.error('Erro ao salvar usuário:', error);
         setErro('Erro ao salvar usuário.');
       });
   }
 
   return (
-    <Modal show={editandoUsuario !== null} onHide={function() { setEditandoUsuario(null); }}>
+    <Modal
+      show={editandoUsuario !== null}
+      onHide={function () {
+        setEditandoUsuario(null);
+      }}
+    >
       <Modal.Header closeButton>
         <Modal.Title>Editar Usuário</Modal.Title>
       </Modal.Header>
@@ -128,8 +142,8 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
             <Form.Control
               type="text"
               value={formularioUsuario.nome}
-              onChange={function(e) {
-                setFormularioUsuario(function(form) {
+              onChange={function (e) {
+                setFormularioUsuario(function (form) {
                   return { ...form, nome: e.target.value };
                 });
               }}
@@ -140,8 +154,8 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
             <Form.Control
               type="email"
               value={formularioUsuario.email}
-              onChange={function(e) {
-                setFormularioUsuario(function(form) {
+              onChange={function (e) {
+                setFormularioUsuario(function (form) {
                   return { ...form, email: e.target.value };
                 });
               }}
@@ -152,8 +166,8 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
             <Form.Control
               type="text"
               value={formularioUsuario.telefone}
-              onChange={function(e) {
-                setFormularioUsuario(function(form) {
+              onChange={function (e) {
+                setFormularioUsuario(function (form) {
                   return { ...form, telefone: e.target.value };
                 });
               }}
@@ -161,49 +175,51 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Planos</Form.Label>
-            {formularioUsuario.planos.map(function(plano, index) {
+            {formularioUsuario.planos.map(function (plano, index) {
               return (
                 <div key={plano.nome + plano.dataAdesao + index}>
                   <Form.Select
                     value={plano.nome}
-                    onChange={function(e) {
+                    onChange={function (e) {
                       atualizarPlanoFormulario(index, 'nome', e.target.value);
                     }}
                   >
                     <option value="">Selecione</option>
-                    {planos.map(function(p) {
-                      return <option key={p.id} value={p.text}>{p.text}</option>;
+                    {planos.map(function (p) {
+                      return (
+                        <option key={p.id} value={p.text}>
+                          {p.text}
+                        </option>
+                      );
                     })}
                   </Form.Select>
                   <Form.Control
                     type="date"
                     value={plano.dataAdesao}
-                    onChange={function(e) {
+                    onChange={function (e) {
                       atualizarPlanoFormulario(index, 'dataAdesao', e.target.value);
                     }}
                   />
                   <Form.Control
                     type="date"
                     value={plano.dataExpiracao}
-                    onChange={function(e) {
+                    onChange={function (e) {
                       atualizarPlanoFormulario(index, 'dataExpiracao', e.target.value);
                     }}
                   />
                   <Button
                     variant="danger"
                     size="sm"
-                    onClick={function() { removerPlanoFormulario(index); }}
+                    onClick={function () {
+                      removerPlanoFormulario(index);
+                    }}
                   >
                     Remover
                   </Button>
                 </div>
               );
             })}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={adicionarPlanoFormulario}
-            >
+            <Button variant="secondary" size="sm" onClick={adicionarPlanoFormulario}>
               Adicionar Plano
             </Button>
           </Form.Group>
@@ -212,8 +228,8 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
               type="checkbox"
               label="Administrador"
               checked={formularioUsuario.ehAdmin}
-              onChange={function(e) {
-                setFormularioUsuario(function(form) {
+              onChange={function (e) {
+                setFormularioUsuario(function (form) {
                   return { ...form, ehAdmin: e.target.checked };
                 });
               }}
@@ -222,7 +238,12 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={function() { setEditandoUsuario(null); }}>
+        <Button
+          variant="secondary"
+          onClick={function () {
+            setEditandoUsuario(null);
+          }}
+        >
           Cancelar
         </Button>
         <Button variant="primary" onClick={salvarUsuario}>
@@ -234,3 +255,10 @@ function UserEditModal({ editandoUsuario, setEditandoUsuario, planos, carregarUs
 }
 
 export default UserEditModal;
+
+UserEditModal.propTypes = {
+  editandoUsuario: PropTypes.object,
+  setEditandoUsuario: PropTypes.func.isRequired,
+  planos: PropTypes.array,
+  carregarUsuarios: PropTypes.func.isRequired,
+};

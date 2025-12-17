@@ -5,7 +5,9 @@ const path = require('path');
 // Verificar se o arquivo serviceAccountKey.json existe
 const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
 if (!fs.existsSync(serviceAccountPath)) {
-  console.error(`Erro: Arquivo ${serviceAccountPath} não encontrado. Gere a chave em Firebase Console > Project Settings > Service Accounts e salve em ${__dirname}.`);
+  console.error(
+    `Erro: Arquivo ${serviceAccountPath} não encontrado. Gere a chave em Firebase Console > Project Settings > Service Accounts e salve em ${__dirname}.`
+  );
   process.exit(1);
 }
 
@@ -28,7 +30,9 @@ async function deleteNonAdminUsers() {
       const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
       authUsers.push(...listUsersResult.users);
       nextPageToken = listUsersResult.pageToken;
-      console.log(`Carregados ${listUsersResult.users.length} usuários do Authentication. Total até agora: ${authUsers.length}`);
+      console.log(
+        `Carregados ${listUsersResult.users.length} usuários do Authentication. Total até agora: ${authUsers.length}`
+      );
     } while (nextPageToken);
     console.log(`Total de usuários no Authentication: ${authUsers.length}`);
 
@@ -54,14 +58,23 @@ async function deleteNonAdminUsers() {
       snapshot = await usuariosRef.limit(500).startAfter(lastDoc).get();
     }
 
-    console.log(`Usuários administradores (${adminUsers.length}):`, adminUsers.map(u => u.email));
-    console.log(`Usuários não administradores no Firestore (${nonAdminUsers.length}):`, nonAdminUsers.map(u => u.email));
+    console.log(
+      `Usuários administradores (${adminUsers.length}):`,
+      adminUsers.map((u) => u.email)
+    );
+    console.log(
+      `Usuários não administradores no Firestore (${nonAdminUsers.length}):`,
+      nonAdminUsers.map((u) => u.email)
+    );
 
     // Passo 3: Identificar usuários no Authentication que não estão no Firestore
     const authOnlyUsers = authUsers
-      .filter(user => !firestoreUsers.has(user.uid))
-      .map(user => ({ uid: user.uid, email: user.email || 'sem e-mail' }));
-    console.log(`Usuários apenas no Authentication (${authOnlyUsers.length}):`, authOnlyUsers.map(u => u.email));
+      .filter((user) => !firestoreUsers.has(user.uid))
+      .map((user) => ({ uid: user.uid, email: user.email || 'sem e-mail' }));
+    console.log(
+      `Usuários apenas no Authentication (${authOnlyUsers.length}):`,
+      authOnlyUsers.map((u) => u.email)
+    );
 
     // Combinar usuários não administradores do Firestore e Authentication
     const usersToDelete = [...nonAdminUsers, ...authOnlyUsers];
@@ -71,7 +84,10 @@ async function deleteNonAdminUsers() {
       return;
     }
 
-    console.log(`Total de usuários a excluir (${usersToDelete.length}):`, usersToDelete.map(u => u.email));
+    console.log(
+      `Total de usuários a excluir (${usersToDelete.length}):`,
+      usersToDelete.map((u) => u.email)
+    );
 
     // Passo 4: Excluir usuários do Authentication
     let deletedAuthUsers = 0;
@@ -81,7 +97,10 @@ async function deleteNonAdminUsers() {
         console.log(`Usuário ${user.uid} (${user.email}) excluído do Authentication.`);
         deletedAuthUsers++;
       } catch (error) {
-        console.error(`Erro ao excluir usuário ${user.uid} (${user.email}) do Authentication:`, error.message);
+        console.error(
+          `Erro ao excluir usuário ${user.uid} (${user.email}) do Authentication:`,
+          error.message
+        );
       }
     }
     console.log(`Total de usuários excluídos do Authentication: ${deletedAuthUsers}`);
@@ -98,7 +117,9 @@ async function deleteNonAdminUsers() {
       }
       await batch.commit();
       deletedDocs += batchUsers.length;
-      console.log(`Excluídos ${batchUsers.length} documentos no batch. Total até agora: ${deletedDocs}`);
+      console.log(
+        `Excluídos ${batchUsers.length} documentos no batch. Total até agora: ${deletedDocs}`
+      );
     }
 
     console.log(`Total de documentos não administradores excluídos do Firestore: ${deletedDocs}`);
